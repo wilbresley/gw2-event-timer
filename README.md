@@ -23,7 +23,7 @@ If the timer helped, you can send a gift in Guild Wars 2 to **Bresleywil.2384**,
 ![Pix QR code](site/assets/pix-qr.png)
 
 ```text
-a8d44088-1b08-465d-aac1-29ca42014692
+2ca8568d-6bf0-454c-ba65-e2fbbca52057
 ```
 
 ## What you need
@@ -196,7 +196,9 @@ docker compose up -d
 
 ## What the page does
 
-The header stays put. The list scrolls. The header has the name, the device clock, the time zone, search, sound, the account button, and a GitHub button that opens this repository. When a key is saved in this browser, a dot to the left of **Account** shows the last account read: solid green when it worked, blinking blue while it updates, solid red when nothing was updated, and solid yellow when only part of it worked.
+The header stays put. The list scrolls. On a wide window the header shows the name, the device clock and time zone, search, sound, Account, GitHub, Sponsor, and Pix. When a key is saved in this browser, a dot in the header shows the last account read: solid green when it worked, blinking blue while it updates, solid red when nothing was updated, and solid yellow when only part of it worked.
+
+Below about 900 px the bar keeps the logo, a smaller name, and the time at the end of that row when it fits. Search is an icon until it is opened. Sound stays an icon. The menu button holds Account, GitHub, Sponsor, Pix, the tracked gathering tools in one row, and the region filters. The queue chips stay in one row that scrolls sideways.
 
 The queues are Active, Next 10 min, Done, Favorites, and Alerts. The content filters are Main, Bosses, Metas, and the regions: Core Tyria, Heart of Thorns, Path of Fire, Icebrood Saga, End of Dragons, Secrets of the Obscure, Janthir Wilds, and Visions of Eternity. More than one can be selected. Name search applies on top.
 
@@ -252,7 +254,7 @@ To the left of **Forget Account** there are four buttons:
 
 **Characters** shows weapon skills 1 to 5 of the equipped weapons, plus heal, utilities, and elite. There are no F1 to F5 skills. On an elementalist, each element shows that element's skill on the equipped weapon. On a ranger, only the equipped pets appear. On a revenant, each equipped legend has its own heal and utility bar, drawn beside a weapon line only so the rows line up. The weapon does not choose those skills.
 
-**Tools** separates infinite and limited gathering tools. One infinite tool of each type can be tracked, and **Clear tracked tools** removes that tracking from the header. Between the infinite tools and the limited tools, only gathering-tool glyphs appear, loose or socketed in a tool. Runes, sigils, and other upgrades are not listed. Clicking a glyph opens where it is.
+**Tools** separates infinite and limited gathering tools. One infinite tool of each type can be tracked, and **Clear tracked tools** removes that tracking from the header. On a narrow window those three tools sit in one row inside the menu. Between the infinite tools and the limited tools, only gathering-tool glyphs appear, loose or socketed in a tool. Runes, sigils, and other upgrades are not listed. Clicking a glyph opens where it is.
 
 **Bosses** marks what the account has already done. A boss that also exists on the timer has **Copy teleport**, with the same chat code as the event.
 

@@ -23,7 +23,7 @@ Se o timer ajudou, dá para mandar um mimo no Guild Wars 2 para a conta **Bresle
 ![QR code do Pix](site/assets/pix-qr.png)
 
 ```text
-a8d44088-1b08-465d-aac1-29ca42014692
+2ca8568d-6bf0-454c-ba65-e2fbbca52057
 ```
 
 ## O que você precisa
@@ -196,7 +196,9 @@ O `restart: unless-stopped` do Compose sobe o container de novo quando a máquin
 
 ## O que a página faz
 
-O topo fica parado. A lista rola. No topo estão o nome, o relógio do aparelho, o fuso, a busca, o som, o botão da conta e um botão do GitHub que abre este repositório. Quando existe uma chave salva neste navegador, uma bolinha à esquerda de **Account** mostra o estado da última leitura da conta: verde sólida quando deu certo, azul piscando enquanto atualiza, vermelha sólida quando nada foi atualizado e amarela sólida quando só uma parte deu certo.
+O topo fica parado. A lista rola. Numa janela larga o topo mostra o nome, o relógio do aparelho e o fuso, a busca, o som, Account, GitHub, Sponsor e Pix. Quando existe uma chave salva neste navegador, uma bolinha no topo mostra o estado da última leitura da conta: verde sólida quando deu certo, azul piscando enquanto atualiza, vermelha sólida quando nada foi atualizado e amarela sólida quando só uma parte deu certo.
+
+Abaixo de cerca de 900 px a barra fica com o logo, o nome menor e a hora no fim dessa linha quando cabe. A busca vira um ícone até ser aberta. O som continua um ícone. O botão de menu guarda Account, GitHub, Sponsor, Pix, as ferramentas de coleta marcadas numa linha e os filtros de região. As filas ficam numa linha que rola para o lado.
 
 As filas são Active, Next 10 min, Done, Favorites e Alerts. Os filtros de conteúdo são Main, Bosses, Metas e as regiões: Core Tyria, Heart of Thorns, Path of Fire, Icebrood Saga, End of Dragons, Secrets of the Obscure, Janthir Wilds e Visions of Eternity. Dá para marcar mais de um. A busca pelo nome entra junto.
 
@@ -252,7 +254,7 @@ Os menus, nesta ordem, são Summary, Legendary, Ascended, Inventory, Characters,
 
 **Characters** mostra as skills 1 a 5 das armas equipadas, mais cura, utilities e elite. Não há skills de F1 a F5. No elementalist, cada elemento mostra a skill daquele elemento na arma equipada. No ranger, aparecem só os pets equipados. Na revenant, cada herói equipado tem a própria barra de cura e utilities, desenhada ao lado de uma linha de arma só para o alinhamento visual. A arma não escolhe essas skills.
 
-**Tools** separa ferramentas infinitas e limitadas. Dá para rastrear uma ferramenta infinita de cada tipo, e **Clear tracked tools** tira esse rastreio do topo. Entre as infinitas e as limitadas entram só os glyphs de ferramenta, soltos ou encaixados numa ferramenta. Runas, sigilos e os outros upgrades não entram. Clicar num glyph abre onde ele está.
+**Tools** separa ferramentas infinitas e limitadas. Dá para rastrear uma ferramenta infinita de cada tipo, e **Clear tracked tools** tira esse rastreio do topo. Numa janela estreita as três ferramentas ficam numa linha dentro do menu. Entre as infinitas e as limitadas entram só os glyphs de ferramenta, soltos ou encaixados numa ferramenta. Runas, sigilos e os outros upgrades não entram. Clicar num glyph abre onde ele está.
 
 **Bosses** marca o que a conta já fez. O chefe que também existe no timer tem **Copy teleport**, com o mesmo código de chat do evento.
 

@@ -12,11 +12,11 @@
   <meta name="theme-color" content="#0c0f14">
   <title>Gw2 Event Timer</title>
   <link rel="icon" href="assets/icon.png?v=15" type="image/png">
-  <link rel="stylesheet" href="app.css?v=29">
+  <link rel="stylesheet" href="app.css?v=31">
   <link rel="stylesheet" href="account.css?v=21">
 </head>
 <body>
-  <header class="bar">
+  <header class="bar" id="bar">
     <div class="top">
       <div id="tool-shelf" class="tool-shelf"></div>
       <div class="brand">
@@ -28,6 +28,12 @@
       </div>
       <div class="tools">
       <span id="api-sync" class="api-sync" hidden></span>
+      <button type="button" class="tool icon-btn mobile-only" id="find" aria-label="Search">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.96 4.6a6 6 0 1 1 1.06-1.06l3.2 3.2a.75.75 0 1 1-1.06 1.06l-3.2-3.2Z"></path></svg>
+      </button>
+      <button type="button" class="tool icon-btn mobile-only" id="menu" aria-label="Menu" aria-expanded="false">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3.75A.75.75 0 0 1 2.25 3h11.5a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1-.75-.75Zm0 4.25A.75.75 0 0 1 2.25 7h11.5a.75.75 0 0 1 0 1.5H2.25A.75.75 0 0 1 1.5 8Zm.75 3.5a.75.75 0 0 0 0 1.5h11.5a.75.75 0 0 0 0-1.5H2.25Z"></path></svg>
+      </button>
       <button type="button" id="account" class="tool" aria-pressed="false">Account</button>
       <button type="button" id="sound" class="tool" aria-pressed="false">Enable sound</button>
       <a class="tool git-link" href="https://github.com/wilbresley/gw2-event-timer" target="_blank" rel="noopener noreferrer">
@@ -38,13 +44,22 @@
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.565 20.565 0 0 0 8 13.393a20.561 20.561 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5z"></path></svg>
         Sponsor
       </button>
-      <button type="button" class="tool" id="pix" data-pix="a8d44088-1b08-465d-aac1-29ca42014692">Pix</button>
+      <button type="button" class="tool" id="pix" data-pix="2ca8568d-6bf0-454c-ba65-e2fbbca52057">Pix</button>
       </div>
     </div>
     <input id="search" class="search" type="search" enterkeyhint="search" autocomplete="off" spellcheck="false">
     <nav id="queues" class="filters" aria-label="Queues"></nav>
     <nav id="filters" class="filters" aria-label="Filters"></nav>
   </header>
+  <div id="sheet" class="sheet" hidden>
+    <div class="sheet-card">
+      <div class="sheet-head">
+        <strong>Menu</strong>
+        <button type="button" class="tool" id="sheet-close">Close</button>
+      </div>
+      <div id="sheet-body"></div>
+    </div>
+  </div>
   <div id="api-down" class="api-down" hidden>
     <strong>ArenaNet's API is not responding</strong>
     <p>It looks like the API is in maintenance. The account panel stays closed. Try again later. The event timer keeps running.</p>
@@ -56,7 +71,7 @@
   <dialog id="pix-modal" class="pix-modal">
     <h2>Pix</h2>
     <p>Scan with a Brazilian bank app. You choose the amount.</p>
-    <img src="assets/pix-qr.png?v=1" alt="Pix QR code" width="240" height="240">
+    <img src="assets/pix-qr.png?v=2" alt="Pix QR code" width="240" height="240">
     <div class="pix-actions">
       <button type="button" class="tool" id="pix-copy">Copy key</button>
       <button type="button" class="tool" id="pix-close">Close</button>
@@ -66,7 +81,7 @@
   <div id="tip" class="tip" hidden></div>
   <button type="button" id="alarm" class="alarm" hidden></button>
   <script src="data.js?v=12"></script>
-  <script src="app.js?v=30"></script>
+  <script src="app.js?v=32"></script>
   <script src="account.js?v=37"></script>
 </body>
 </html>

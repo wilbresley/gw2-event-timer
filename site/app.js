@@ -805,6 +805,7 @@
     $("search").setAttribute("aria-label", text.search);
     $("foot").textContent = footText();
     $("sound").textContent = sound ? text.soundOn : text.soundOff;
+    $("sound").setAttribute("aria-label", sound ? text.soundOn : text.soundOff);
     $("sound").setAttribute("aria-pressed", sound ? "true" : "false");
 
     const queueNav = $("queues");
@@ -1050,7 +1051,9 @@
     watch(now);
     const text = t();
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    $("clock").textContent = fmtClock(now) + " · " + zone + " · " + dayPart(now);
+    $("clock").textContent = document.body.classList.contains("is-narrow")
+      ? fmtClock(now)
+      : fmtClock(now) + " · " + zone + " · " + dayPart(now);
 
     const { groups, order } = collect(now);
     const sig = lang + "|" + order.map((key) => key + ":" + groups[key].map((row) => row.ev.id).join(",")).join("|");
@@ -1084,6 +1087,68 @@
       list.append(p);
     }
   }
+
+  const narrowMq = window.matchMedia("(max-width: 900px)");
+  const sheetMovers = [
+    $("account"),
+    document.querySelector(".git-link"),
+    $("heart"),
+    $("pix"),
+    $("tool-shelf"),
+    $("filters")
+  ];
+  const sheetHomes = sheetMovers.map((el) => ({ el: el, parent: el.parentNode, next: el.nextSibling }));
+
+  function closeSheet() {
+    $("sheet").hidden = true;
+    $("menu").setAttribute("aria-expanded", "false");
+  }
+
+  function openSheet() {
+    $("bar").classList.remove("search-open");
+    $("sheet").hidden = false;
+    $("menu").setAttribute("aria-expanded", "true");
+  }
+
+  function applyNarrow(on) {
+    document.body.classList.toggle("is-narrow", on);
+    if (on) {
+      const body = $("sheet-body");
+      sheetMovers.forEach((el) => body.append(el));
+    } else {
+      closeSheet();
+      $("bar").classList.remove("search-open");
+      sheetHomes.forEach((home) => {
+        if (home.next && home.next.parentNode === home.parent) home.parent.insertBefore(home.el, home.next);
+        else home.parent.append(home.el);
+      });
+    }
+  }
+
+  $("find").addEventListener("click", () => {
+    closeSheet();
+    const open = $("bar").classList.toggle("search-open");
+    if (open) $("search").focus();
+  });
+  $("menu").addEventListener("click", () => {
+    if ($("sheet").hidden) openSheet();
+    else closeSheet();
+  });
+  $("sheet-close").addEventListener("click", closeSheet);
+  $("sheet").addEventListener("click", (event) => {
+    if (event.target === $("sheet")) {
+      closeSheet();
+      return;
+    }
+    const path = event.composedPath();
+    if (!path.includes($("sheet-body"))) return;
+    if (event.target.closest("button, a")) closeSheet();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !$("sheet").hidden) closeSheet();
+  });
+  applyNarrow(narrowMq.matches);
+  narrowMq.addEventListener("change", (event) => applyNarrow(event.matches));
 
   $("heart").addEventListener("click", () => {
     const page = "https://github.com/" + ["sponsors", "wilbresley"].join("/");
