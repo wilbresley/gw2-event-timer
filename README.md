@@ -20,7 +20,7 @@ If the timer helped, you can send a gift in Guild Wars 2 to **Bresleywil.2384**,
 
 **Pix, for Brazil.** Scan the code in your bank app and choose the amount. The block under the code has GitHub's copy button.
 
-![Pix QR code](site/assets/pix-qr.png)
+<img src="site/assets/pix-qr.png" alt="Pix QR code" width="240">
 
 ```text
 2ca8568d-6bf0-454c-ba65-e2fbbca52057

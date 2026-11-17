@@ -20,7 +20,7 @@ Se o timer ajudou, dá para mandar um mimo no Guild Wars 2 para a conta **Bresle
 
 **Pix, para o Brasil.** Escaneie o código no aplicativo do banco e escolha o valor. O bloco embaixo do código tem o botão de copiar do GitHub.
 
-![QR code do Pix](site/assets/pix-qr.png)
+<img src="site/assets/pix-qr.png" alt="QR code do Pix" width="240">
 
 ```text
 2ca8568d-6bf0-454c-ba65-e2fbbca52057
