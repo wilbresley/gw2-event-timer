@@ -1,0 +1,299 @@
+# Gw2 Event Timer
+
+[![English](https://img.shields.io/badge/Read%20in-English-1f6feb?style=for-the-badge)](README.md)
+
+Versão 1.0.1.
+
+Página de horários de chefes e metas do Guild Wars 2, com um painel opcional da conta. Abre no navegador. O relógio é o do aparelho de quem está olhando. Não tem banco de dados, não tem login do site e não tem etapa de compilação.
+
+O container só entrega os arquivos da pasta `site`. A chave da API do jogo, quando alguém cola uma, fica no navegador dessa pessoa. Este servidor nunca recebe essa chave e nunca a grava.
+
+Qualquer pessoa pode clonar e usar este projeto. Se for reutilizar, publicar um fork ou usar como base de outra ferramenta, a única coisa pedida é mencionar este projeto como inspiração ou como o fork de origem.
+
+Se o timer ajudou e você quiser incentivar, mande um mimo no Guild Wars 2 para a conta **Bresleywil.2384**.
+
+## O que você precisa
+
+- [Git](https://git-scm.com/downloads)
+- [Docker Desktop](https://docs.docker.com/get-docker/) no Windows ou no macOS, ou Docker Engine mais o plugin Compose no Linux
+
+O Docker precisa estar aberto antes dos comandos abaixo. No Windows, abra o Docker Desktop e espere ele ficar verde.
+
+## Subir no seu computador
+
+Copie e cole, um bloco de cada vez.
+
+```bash
+git clone https://github.com/wilbresley/gw2-event-timer.git
+cd gw2-event-timer
+docker compose up -d
+```
+
+Abra [http://localhost:8094](http://localhost:8094).
+
+O mesmo resultado sai de um atalho, já dentro da pasta do projeto:
+
+- Windows, no PowerShell: `.\start.ps1`
+- Linux e macOS: `chmod +x start.sh && ./start.sh`
+
+Para ver se subiu:
+
+```bash
+docker compose ps
+```
+
+A coluna de estado deve mostrar o container em execução. O nome dele é `gw2-event-timer`.
+
+Para parar, sem apagar a pasta:
+
+```bash
+docker compose down
+```
+
+Para subir de novo depois de parar:
+
+```bash
+docker compose up -d
+```
+
+## Trocar a porta
+
+O arquivo `docker-compose.yml` publica a porta 8094 da máquina na porta 80 de dentro do container:
+
+```yaml
+ports:
+  - "8094:80"
+```
+
+Se o 8094 já estiver ocupado, troque só o número da esquerda. Exemplo, para usar 8080:
+
+```yaml
+ports:
+  - "8080:80"
+```
+
+Salve o arquivo e rode de novo:
+
+```bash
+docker compose up -d
+```
+
+A página passa a abrir em `http://localhost:8080`. O número da direita, `80`, fica como está.
+
+## Atualizar uma cópia que já está no ar
+
+Entre na pasta do projeto e puxe a versão nova. Os arquivos da página são montados direto da pasta, então não é preciso construir uma imagem.
+
+```bash
+cd gw2-event-timer
+git pull
+docker compose up -d
+```
+
+Recarregue o navegador. O endereço continua o mesmo.
+
+Se o `git pull` reclamar que o histórico foi reescrito, não force nada sem saber o que está fazendo. O caminho seguro é guardar a pasta atual com outro nome e clonar de novo:
+
+```bash
+cd ..
+mv gw2-event-timer gw2-event-timer-old
+git clone https://github.com/wilbresley/gw2-event-timer.git
+cd gw2-event-timer
+docker compose up -d
+```
+
+No Windows, no PowerShell, o `mv` também renomeia a pasta.
+
+## Subir num servidor Debian
+
+Estes passos valem para um Debian limpo, com acesso de administrador. Troque o usuário e o caminho se a máquina já tiver um padrão. Os comandos abaixo usam `sudo` quando a tarefa pede root.
+
+### 1. Instalar Git e Docker
+
+```bash
+sudo apt update
+sudo apt install -y git ca-certificates curl
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker "$USER"
+```
+
+Saia da sessão e entre de novo, para o grupo `docker` valer. Confira:
+
+```bash
+docker version
+docker compose version
+```
+
+Os dois comandos precisam imprimir um número de versão, sem erro de permissão.
+
+### 2. Baixar o projeto e ligar
+
+```bash
+git clone https://github.com/wilbresley/gw2-event-timer.git
+cd gw2-event-timer
+docker compose up -d
+docker compose ps
+```
+
+Na própria máquina do servidor:
+
+```text
+http://IP-DO-SERVIDOR:8094
+```
+
+De outro computador na mesma rede, use o IP dessa máquina no lugar de `localhost`.
+
+Se o servidor tiver firewall, libere só a porta que você escolheu:
+
+```bash
+sudo apt install -y ufw
+sudo ufw allow 8094/tcp
+sudo ufw status
+```
+
+Não rode `ufw enable` se você ainda não liberou o SSH. Sem a porta 22 aberta, a sessão remota cai.
+
+### 3. Colocar atrás de um proxy, se quiser um domínio
+
+O container já responde em HTTP na porta publicada. Um proxy na frente, Nginx ou Caddy, pode terminar o HTTPS e encaminhar para `127.0.0.1:8094`. Este repositório não traz certificado nem domínio. Exemplo mínimo de site no Nginx do host, sem TLS:
+
+```nginx
+server {
+    listen 80;
+    server_name timer.example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8094;
+    }
+}
+```
+
+Troque `timer.example.com` pelo nome que aponta para esse servidor. O TLS fica a cargo do proxy que você já usa.
+
+### 4. Atualizar o servidor
+
+```bash
+cd gw2-event-timer
+git pull
+docker compose up -d
+```
+
+O `restart: unless-stopped` do Compose sobe o container de novo quando a máquina reinicia, desde que o serviço do Docker também suba com o sistema.
+
+## O que a página faz
+
+O topo fica parado. A lista rola. No topo estão o nome, o relógio do aparelho, o fuso, a busca, o som, o botão da conta e um botão do GitHub que abre este repositório. Quando existe uma chave salva neste navegador, uma bolinha à esquerda de **Account** mostra o estado da última leitura da conta: verde sólida quando deu certo, azul piscando enquanto atualiza, vermelha sólida quando nada foi atualizado e amarela sólida quando só uma parte deu certo.
+
+As filas são Active, Next 10 min, Done, Favorites e Alerts. Os filtros de conteúdo são Main, Bosses, Metas e as regiões: Core Tyria, Heart of Thorns, Path of Fire, Icebrood Saga, End of Dragons, Secrets of the Obscure, Janthir Wilds e Visions of Eternity. Dá para marcar mais de um. A busca pelo nome entra junto.
+
+Em cada evento:
+
+- **Copy teleport** copia o código de chat. O navegador não move o personagem.
+- A estrela guarda favorito.
+- O sino liga o alerta daquele evento.
+- A marca de "já fiz" zera no reset do jogo, meia-noite UTC. Favoritos e alertas ficam.
+
+O reset aparece no rodapé no fuso do aparelho. Não há seletor de fuso. Com o relógio do sistema em automático, a página já mostra o horário local.
+
+Alguns metas avisam antes, para dar tempo de achar mapa. É estimativa de jogador, não um pré-evento oficial:
+
+| Evento | Aviso |
+| --- | --- |
+| Chak Gerent | 20 minutos antes |
+| Octovine | 15 minutos antes |
+| Dragon's Stand | 15 minutos antes do reset do mapa |
+
+Com o sino ligado e o som da página ligado, o aviso toca mesmo com a aba atrás. O navegador só libera áudio depois do primeiro toque na página. Os arquivos estão em `site/assets/sounds/`:
+
+| Momento | Arquivo |
+| --- | --- |
+| Preparar | `prep.mp3` |
+| Em 10 min | `soon.mp3` |
+| Começou | `start.mp3` |
+
+Avisos do mesmo tipo compartilham uma tela. Tipos diferentes entram numa fila: primeiro quem começou, depois os de 10 minutos, por último o preparar.
+
+A largura da janela muda o número de colunas da lista: 1 até 1199 px, 2 a partir de 1200, 3 a partir de 1900, 4 a partir de 2560, 5 a partir de 3440 e 6 a partir de 3840.
+
+## Painel da conta
+
+O botão **Account** abre um painel no mesmo navegador. A pessoa cola uma chave criada em [account.arena.net/applications](https://account.arena.net/applications). A chave fica em `localStorage`, neste site, neste navegador. Outro navegador ou outro computador pede a chave de novo. **Forget Account** apaga a chave desse navegador.
+
+As consultas partem do navegador dessa pessoa direto para `https://api.guildwars2.com`. Este container não faz proxy dessas chamadas e não guarda a chave. Ícones vindos de `render.guildwars2.com` não entram na conta de pedidos da API.
+
+Os menus, nesta ordem, são Summary, Legendary, Ascended, Inventory, Characters, Tools, Bosses, Wallet, Unlocks, Action House, PvP, WvW, Progress e Guilds. O painel mostra o que a API devolve e redesenha o menu aberto quando uma leitura termina. Não é preciso recarregar a página.
+
+À esquerda de **Forget Account** ficam quatro botões:
+
+- **Clear this menu's filters** limpa os filtros do menu aberto. Em Characters, volta ao primeiro personagem da lista, ao build 1 e ao equipamento 1.
+- **Clear filters on all menus** limpa os filtros de todos os menus, com o mesmo retorno em Characters.
+- **Update this menu from the API** lê de novo só o menu aberto.
+- **Update all menus from the API** lê a conta de novo. Esse botão espera 60 segundos entre um uso e outro.
+
+**Legendary** fica acima de Ascended e lista o que a conta tem de raridade Legendary. Os filtros são All, Weapons, Armor, Accessories, Relics e Items. O subfiltro aparece só dentro da categoria correspondente. O peso Light, Medium ou Heavy só combina com peça de armadura.
+
+**Ascended** tem Weapons, Armor, Accessories e Items. Não há filtro de relíquia ascended, porque essa raridade não existe, e não há filtro de materiais. O peso só aparece quando Armor está selecionado. Os filtros de arma, aqui e em Legendary, incluem longbow e shortbow. A API grava esses tipos como LongBow e ShortBow; a página trata as duas grafias como o mesmo arco, então um arco ascended ou legendary não fica de fora do filtro.
+
+**Inventory** separa Bank, Shared Slot, Materials e cada personagem. Cada aba do banco é uma grade de 10 colunas por 3 linhas. O modo agrupado do banco também fica em 10 colunas. O inventário compartilhado fica em 10 colunas e mostra a quantidade de espaços que a API devolve, sem completar além disso. Os materiais seguem as categorias oficiais da API, na ordem oficial, e listam o que está guardado. Uma categoria vazia continua na lista. A API não informa o tamanho desbloqueado do armazém de materiais, então a página não inventa esse número. O seletor de colunas muda só as bolsas do personagem. O nome de cada personagem nesse filtro usa a cor da classe.
+
+**Characters** mostra as skills 1 a 5 das armas equipadas, mais cura, utilities e elite. Não há skills de F1 a F5. No elementalist, cada elemento mostra a skill daquele elemento na arma equipada. No ranger, aparecem só os pets equipados. Na revenant, cada herói equipado tem a própria barra de cura e utilities, desenhada ao lado de uma linha de arma só para o alinhamento visual. A arma não escolhe essas skills.
+
+**Tools** separa ferramentas infinitas e limitadas. Dá para rastrear uma ferramenta infinita de cada tipo, e **Clear tracked tools** tira esse rastreio do topo. Entre as infinitas e as limitadas entram só os glyphs de ferramenta, soltos ou encaixados numa ferramenta. Runas, sigilos e os outros upgrades não entram. Clicar num glyph abre onde ele está.
+
+**Bosses** marca o que a conta já fez. O chefe que também existe no timer tem **Copy teleport**, com o mesmo código de chat do evento.
+
+**Guilds** mostra o nome, o nível e a quantidade de membros.
+
+A página não calcula atributos de combate. Se a API não manda o número, o painel não inventa.
+
+O navegador segura um cache local em IndexedDB para não baixar de novo catálogos que mudam pouco, como itens, skins e receitas. A primeira abertura de uma conta grande demora mais. As seguintes usam o que já foi salvo nesse navegador.
+
+Há um teto de 600 pedidos por minuto no próprio navegador, para ficar dentro do limite público da ArenaNet. A conta se atualiza sozinha a cada 10 minutos, as ferramentas a cada 5 minutos e os chefes da conta a cada hora. Se a API da ArenaNet não responde, o painel fecha e o timer de eventos continua.
+
+## Como o horário é calculado
+
+Os ciclos fixos estão em `site/data.js`. A conta começa na meia-noite UTC, no mesmo critério da tabela pública da wiki, e o navegador mostra esse instante no fuso do aparelho.
+
+A agenda não se atualiza sozinha. Se um horário fixo mudar no jogo, `site/data.js` precisa ser atualizado e a página publicada de novo. Drizzlewood Coast não entra: esse mapa não tem horário fixo nessa tabela.
+
+Nada do timer é enviado a um servidor além da própria página. Favoritos, alertas e concluídos ficam no armazenamento local do navegador.
+
+## Mapa dos arquivos
+
+| Arquivo | Função |
+| --- | --- |
+| `docker-compose.yml` | Sobe o Nginx e publica a porta 8094 |
+| `nginx.conf` | Entrega a página e pede ao navegador para não guardar uma cópia velha |
+| `start.ps1`, `start.sh` | Atalho para `docker compose up -d` |
+| `VERSION` | Número desta versão: 1.0.1 |
+| `README.md` | Documentação em inglês |
+| `README.pt-BR.md` | Esta documentação |
+| `site/` | HTML, CSS, JavaScript e a agenda |
+| `site/index.html` | Casca da página |
+| `site/app.js` | Timer, filtros, favoritos, alertas e som |
+| `site/app.css` | Visual do timer e a bolinha de estado da conta |
+| `site/data.js` | Horários fixos e códigos de teleporte |
+| `site/account.js` | Painel da conta |
+| `site/account.css` | Visual do painel da conta |
+| `site/assets/` | Ícone da página, ícone do inventário compartilhado e os sons |
+
+A imagem usada é `nginx:1.27-alpine`. Ela não é construída neste repositório. O Compose só monta `site` em `/usr/share/nginx/html` e `nginx.conf` em `/etc/nginx/conf.d/default.conf`, os dois só para leitura.
+
+## Quando algo não abre
+
+**A página não carrega.** Confira se o Docker está aberto e se o container está de pé:
+
+```bash
+docker compose ps
+docker compose logs
+```
+
+**A porta está ocupada.** O log cita `address already in use`. Troque o número da esquerda em `docker-compose.yml`, como na seção da porta, e rode `docker compose up -d` de novo.
+
+**O celular na mesma rede não abre `localhost`.** `localhost` é a própria máquina. No celular, use o IP do computador onde o Docker está rodando, com a mesma porta. Exemplo: `http://192.168.0.20:8094`.
+
+**A conta não carrega e aparece aviso de API.** A ArenaNet pode estar em manutenção. O timer de eventos não depende dessa API e continua. Tente o painel de novo mais tarde.
+
+**A chave foi colada e nada muda.** A chave precisa das permissões da conta que o painel lê, como account, characters, inventories e unlocks. Uma chave sem permissão volta vazia ou com erro naquela seção. **Forget Account** limpa a chave errada para colar outra.
+
+**Atualizei os arquivos e o navegador mostra a versão velha.** Recarregue a página. O Nginx manda `Cache-Control: no-cache`. Se ainda assim parecer antigo, faça um recarregamento forçado do navegador.
