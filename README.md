@@ -14,7 +14,7 @@ Copying the `site` folder is enough to keep using the timer with no server at al
 
 Anyone can clone and use this project. If you reuse it, publish a fork, or take it as the base of another tool, please mention this project as the inspiration or as the fork it came from.
 
-If the timer helped you and you want to say thanks, send a gift in Guild Wars 2 to **Bresleywil.2384**.
+If the timer helped you and you want to say thanks, send a gift in Guild Wars 2 to **Bresleywil.2384**. You can also [sponsor the project on GitHub](https://github.com/sponsors/wilbresley). In Brazil, a Pix transfer uses the random key `a8d44088-1b08-465d-aac1-29ca42014692`.
 
 ## What you need
 

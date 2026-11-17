@@ -93,8 +93,10 @@ h1 {
   grid-column: 3;
   justify-self: end;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 0.35rem;
-  flex-shrink: 0;
+  max-width: 100%;
 }
 
 .tool, .chip, .icon, .copy {

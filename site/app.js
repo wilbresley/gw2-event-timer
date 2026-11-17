@@ -1085,6 +1085,12 @@
     }
   }
 
+  $("pix").addEventListener("click", async () => {
+    const key = $("pix").getAttribute("data-pix");
+    const ok = await copyText(key);
+    showToast(ok ? "Pix key copied" : "Could not copy the Pix key", ok ? "" : key);
+  });
+
   $("sound").addEventListener("click", () => {
     sound = !sound;
     localStorage.setItem("gw2-sound", sound ? "1" : "0");
