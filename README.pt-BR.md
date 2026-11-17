@@ -6,7 +6,11 @@ Versão 1.0.1.
 
 Página de horários de chefes e metas do Guild Wars 2, com um painel opcional da conta. Abre no navegador. O relógio é o do aparelho de quem está olhando. Não tem banco de dados, não tem login do site e não tem etapa de compilação.
 
-O container só entrega os arquivos da pasta `site`. A chave da API do jogo, quando alguém cola uma, fica no navegador dessa pessoa. Este servidor nunca recebe essa chave e nunca a grava.
+O container só entrega os arquivos da pasta `site`. Depois que esses arquivos carregam, a página é uma ferramenta local no computador dessa pessoa. Ela não envia eventos, favoritos, alertas nem a chave da API para a máquina que entregou a página, e não liga de volta para lugar nenhum deste projeto.
+
+O timer de eventos lê `site/data.js` e guarda favoritos, alertas e concluídos no navegador. Ele mesmo não faz nenhum pedido de rede. O painel da conta, só se alguém colar uma chave, chama `https://api.guildwars2.com` direto desse navegador. Os ícones dos itens e os links da wiki abertos no painel também vêm da ArenaNet, não deste projeto. O mesmo limite está escrito no topo de `site/index.html`, `site/app.js` e `site/account.js`.
+
+Copiar a pasta `site` basta para continuar usando o timer sem servidor nenhum: abra o `index.html` dessa pasta, ou sirva a pasta com qualquer servidor de arquivo estático. O "salvar página completa" do navegador é menos confiável, porque o navegador reescreve os caminhos e pode deixar um arquivo de fora. O painel da conta continua precisando da internet dessa pessoa até a ArenaNet. Remover o servidor de origem não para uma cópia que já tenha os arquivos.
 
 Qualquer pessoa pode clonar e usar este projeto. Se for reutilizar, publicar um fork ou usar como base de outra ferramenta, a única coisa pedida é mencionar este projeto como inspiração ou como o fork de origem.
 

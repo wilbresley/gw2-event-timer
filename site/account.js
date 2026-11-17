@@ -1,3 +1,6 @@
+/* Account reads go from this browser straight to ArenaNet.
+   The only network host used here is https://api.guildwars2.com.
+   The API key stays in localStorage under "gw2-token" and is never sent anywhere else. */
 (function () {
   const API = "https://api.guildwars2.com";
   const TOKEN_KEY = "gw2-token";

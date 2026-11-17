@@ -1,3 +1,5 @@
+/* The timer never contacts a server. Schedules come from data.js.
+   Favorites, alerts, and completed marks stay in this browser's localStorage. */
 (function () {
   const data = window.GW2;
   const I18N = {

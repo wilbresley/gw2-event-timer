@@ -6,7 +6,11 @@ Version 1.0.1.
 
 A browser page for Guild Wars 2 world bosses and meta events, with an optional account panel. The clock is the clock of the device looking at the page. There is no database, no site login, and no build step.
 
-The container only serves the files in `site`. When someone pastes a game API key, that key stays in that person's browser. This server never receives the key and never stores it.
+The container only serves the files in `site`. After those files have loaded, the page is a local tool on that person's computer. It does not send events, favorites, alerts, or the API key to the machine that delivered the page, and it does not phone home.
+
+The event timer reads `site/data.js` and saves favorites, alerts, and completed marks in the browser. It makes no network request of its own. The account panel, only if someone pastes a key, calls `https://api.guildwars2.com` directly from that browser. Item icons and wiki links opened from the panel also come from ArenaNet, not from this project. The same boundary is written at the top of `site/index.html`, `site/app.js`, and `site/account.js`.
+
+Copying the `site` folder is enough to keep using the timer with no server at all: open `index.html` from that folder, or serve the folder with any static file server. A browser "save complete page" is less reliable, because browsers rewrite paths and can leave a file out. The account panel still needs that person's internet connection to ArenaNet. Removing the original host does not stop a copy that already has the files.
 
 Anyone can clone and use this project. If you reuse it, publish a fork, or take it as the base of another tool, please mention this project as the inspiration or as the fork it came from.
 
