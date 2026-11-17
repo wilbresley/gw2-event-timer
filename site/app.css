@@ -90,13 +90,12 @@ h1 {
 }
 
 .tools {
-  grid-column: 3;
-  justify-self: end;
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: center;
   gap: 0.35rem;
-  max-width: 100%;
+  margin-top: 0.45rem;
 }
 
 .tool, .chip, .icon, .copy {
