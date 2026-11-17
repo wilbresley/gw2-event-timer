@@ -90,12 +90,14 @@ h1 {
 }
 
 .tools {
+  grid-column: 3;
+  justify-self: end;
+  align-self: center;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
   align-items: center;
   gap: 0.35rem;
-  margin-top: 0.45rem;
 }
 
 .tool, .chip, .icon, .copy {
@@ -128,8 +130,17 @@ a.tool svg {
   flex: 0 0 auto;
 }
 
-a.tool.sponsor-link svg {
+.heart-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.heart-link svg {
+  width: 1rem;
+  height: 1rem;
   fill: #ea4aaa;
+  flex: 0 0 auto;
 }
 
 .api-sync {

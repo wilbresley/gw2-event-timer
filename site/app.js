@@ -1085,6 +1085,11 @@
     }
   }
 
+  $("heart").addEventListener("click", () => {
+    const page = "https://github.com/" + ["sponsors", "wilbresley"].join("/");
+    window.open(page, "_blank", "noopener,noreferrer");
+  });
+
   const pixModal = $("pix-modal");
   $("pix").addEventListener("click", () => pixModal.showModal());
   pixModal.addEventListener("click", (event) => {
