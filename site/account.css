@@ -855,6 +855,17 @@ button.skill-ico.pet-ico .skill-img {
   min-width: 0;
 }
 
+@media (max-width: 900px) {
+  .tool-shelf {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .shelf-tool {
+    flex: 0 0 auto;
+  }
+}
+
 .shelf-tool {
   width: 46px;
   height: 46px;
