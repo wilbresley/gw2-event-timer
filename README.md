@@ -219,7 +219,9 @@ Some metas warn early, so there is time to find a map. That lead time is a playe
 | Octovine | 15 minutes before |
 | Dragon's Stand | 15 minutes before the map reset |
 
-With the bell on and the page sound on, the warning plays even when the tab is in the background. The browser only allows audio after the first tap on the page. The files are in `site/assets/sounds/`:
+**Sound** opens a small panel. Sound on and sound off are in that panel. Prepare, 10 min, and Started each have one button. A click raises the repeat count from 1 to 5, and the next click returns to 1. A new browser starts at 2, 3, and 5. The choice stays in this browser. The green screen stays up for as long as those repeats take. A tap on the screen closes it and stops the sound.
+
+The page does not ask for notification permission and does not post a system notification. The warning is an audio file played by the page. The first click anywhere on a visit lets the browser play it later. After that, the warning plays while page sound is on, including when the tab is in the background. It stays quiet when page sound is off, when the tab is muted, or when the computer is muted. The files are in `site/assets/sounds/`:
 
 | Moment | File |
 | --- | --- |

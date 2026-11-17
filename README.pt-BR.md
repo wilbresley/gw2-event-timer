@@ -219,7 +219,9 @@ Alguns metas avisam antes, para dar tempo de achar mapa. É estimativa de jogado
 | Octovine | 15 minutos antes |
 | Dragon's Stand | 15 minutos antes do reset do mapa |
 
-Com o sino ligado e o som da página ligado, o aviso toca mesmo com a aba atrás. O navegador só libera áudio depois do primeiro toque na página. Os arquivos estão em `site/assets/sounds/`:
+**Som** abre um painel pequeno. Som ligado e som desligado ficam nesse painel. Preparar, 10 min e Começou têm um botão cada. Um clique sobe a repetição de 1 até 5, e o clique seguinte volta para 1. Um navegador novo começa em 2, 3 e 5. A escolha fica neste navegador. A tela verde permanece pelo tempo dessas repetições. Um toque na tela fecha e corta o som.
+
+A página não pede permissão de notificação e não manda aviso do sistema. O aviso é um arquivo de áudio tocado pela página. O primeiro clique em qualquer lugar da visita libera o navegador para tocar depois. A partir daí, o aviso toca com o som da página ligado, inclusive com a aba atrás. Fica mudo quando o som da página está desligado, quando a aba está mutada ou quando o computador está mutado. Os arquivos estão em `site/assets/sounds/`:
 
 | Momento | Arquivo |
 | --- | --- |

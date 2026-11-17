@@ -7,8 +7,12 @@
       title: "Gw2 Event Timer",
       lang: "EN",
       html: "pt-BR",
+      soundLabel: "Som",
       soundOn: "Som ligado",
-      soundOff: "Ligar som",
+      soundOff: "Som desligado",
+      soundPrep: "Preparar",
+      soundSoon: "Som 10 min",
+      soundStart: "Começou",
       search: "Buscar pelo nome",
       favorites: "Favoritos",
       alerts: "Alertas",
@@ -64,8 +68,12 @@
       title: "Gw2 Event Timer",
       lang: "PT-BR",
       html: "en-US",
+      soundLabel: "Sound",
       soundOn: "Sound on",
-      soundOff: "Enable sound",
+      soundOff: "Sound off",
+      soundPrep: "Prepare",
+      soundSoon: "10 min",
+      soundStart: "Started",
       search: "Search by name",
       favorites: "Favorites",
       alerts: "Alerts",
@@ -127,6 +135,23 @@
 
   let lang = "en";
   let sound = localStorage.getItem("gw2-sound") !== "0";
+  const REPEAT_DEFAULT = { prep: 2, soon: 3, start: 5 };
+  function loadRepeats() {
+    const counts = { prep: 2, soon: 3, start: 5 };
+    try {
+      const saved = JSON.parse(localStorage.getItem("gw2-sound-repeats") || "{}");
+      Object.keys(counts).forEach((key) => {
+        const count = Math.round(Number(saved[key]));
+        if (count >= 1 && count <= 5) counts[key] = count;
+      });
+    } catch (err) { /* keep the defaults */ }
+    return counts;
+  }
+  let repeats = loadRepeats();
+  function repeatCount(kind) {
+    if (kind === "preview") return 1;
+    return repeats[kind] || REPEAT_DEFAULT[kind] || 1;
+  }
   let cats = new Set(localStorage.getItem("gw2-cats")
     ? JSON.parse(localStorage.getItem("gw2-cats"))
     : [localStorage.getItem("gw2-filter") || "main"]);
@@ -152,12 +177,13 @@
   let lastSig = "";
   let tipTimer = 0;
   let lastWatch = 0;
-  let audioArmed = false;
+  let soundUnlocked = false;
   let soundBusy = false;
   let repeatLeft = 0;
   let voiceGeneration = 0;
+  let alarmPlayTries = 0;
   const soundQueue = [];
-  let voice = null;
+  const voices = {};
   let arming = false;
   const phase = {};
   const PREP_MIN = { "g10-3": 20, "g9-3": 15, "g11-1": 15 };
@@ -509,40 +535,24 @@
     preview: "assets/sounds/soon.mp3?v=2"
   };
 
-  function silentClip() {
-    const n = 400;
-    const bytes = new ArrayBuffer(44 + n * 2);
-    const view = new DataView(bytes);
-    const mark = (at, text) => {
-      for (let i = 0; i < text.length; i++) view.setUint8(at + i, text.charCodeAt(i));
-    };
-    mark(0, "RIFF");
-    view.setUint32(4, 36 + n * 2, true);
-    mark(8, "WAVE");
-    mark(12, "fmt ");
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, 1, true);
-    view.setUint32(24, 8000, true);
-    view.setUint32(28, 16000, true);
-    view.setUint16(32, 2, true);
-    view.setUint16(34, 16, true);
-    mark(36, "data");
-    view.setUint32(40, n * 2, true);
-    return URL.createObjectURL(new Blob([bytes], { type: "audio/wav" }));
+  function clipKey(kind) {
+    return kind === "preview" ? "soon" : kind;
   }
 
-  function ensureVoice() {
-    if (voice) return voice;
-    voice = new Audio();
-    voice.preload = "auto";
-    return voice;
+  function voiceFor(kind) {
+    const key = clipKey(kind);
+    if (!voices[key]) {
+      const audio = new Audio(clips[key]);
+      audio.preload = "auto";
+      voices[key] = audio;
+    }
+    return voices[key];
   }
 
-  function silence(audio) {
+  function pauseVoice(audio) {
     if (!audio) return;
     audio.pause();
-    audio.removeAttribute("src");
+    try { audio.currentTime = 0; } catch (err) { /* o arquivo ainda não voltou ao início */ }
   }
 
   function stopVoice() {
@@ -550,15 +560,23 @@
     repeatLeft = 0;
     soundBusy = false;
     soundQueue.length = 0;
-    silence(voice);
+    Object.keys(voices).forEach((key) => pauseVoice(voices[key]));
+  }
+
+  function alarmVoice() {
+    return alarmCurrent ? voiceFor(alarmCurrent.kind) : null;
   }
 
   function playKind(kind, onDone) {
-    if (!sound || !audioArmed || !clips[kind]) return;
-    const audio = ensureVoice();
+    if (!sound || !soundUnlocked || !clips[kind]) return;
+    const audio = voiceFor(kind);
     const generation = ++voiceGeneration;
+    Object.keys(voices).forEach((key) => {
+      if (voices[key] !== audio) pauseVoice(voices[key]);
+    });
     soundBusy = true;
-    repeatLeft = (REPEATS[kind] || 1) - 1;
+    repeatLeft = repeatCount(kind) - 1;
+    audio.volume = 1;
     audio.onended = () => {
       if (generation !== voiceGeneration) return;
       if (sound && repeatLeft > 0) {
@@ -580,28 +598,23 @@
       repeatLeft = 0;
       if (onDone) onDone();
       else pumpSounds();
-      if (!soundBusy) silence(audio);
     };
-    if (audio.getAttribute("src") !== clips[kind]) audio.src = clips[kind];
-    else {
-      try { audio.currentTime = 0; } catch (err) { /* o arquivo ainda não voltou ao início */ }
-    }
+    try { audio.currentTime = 0; } catch (err) { /* o arquivo ainda não voltou ao início */ }
     const played = audio.play();
     if (!played || !played.catch) return;
-    played.catch((err) => {
+    played.catch(() => {
       if (generation !== voiceGeneration) return;
       soundBusy = false;
       repeatLeft = 0;
-      silence(audio);
-      if (err && err.name === "NotAllowedError") audioArmed = false;
-      if (!onDone) {
-        soundQueue.unshift(kind);
-        if (soundQueue.length > 3) soundQueue.pop();
-      }
+      if (!onDone || !alarmCurrent || !sound || alarmPlayTries >= 3) return;
+      alarmPlayTries += 1;
+      setTimeout(() => {
+        if (generation !== voiceGeneration || !alarmCurrent || !sound || soundBusy) return;
+        playKind(kind, onDone);
+      }, 500);
     });
   }
 
-  const REPEATS = { prep: 2, soon: 3, start: 5, preview: 1 };
   const CLIP_SEC = { prep: 7.0425, soon: 3.3958125, start: 2.3770625 };
   ["prep", "soon", "start"].forEach((kind) => {
     const probe = new Audio(clips[kind]);
@@ -612,7 +625,7 @@
   });
 
   function pumpSounds() {
-    if (!sound || soundBusy || alarmCurrent || !soundQueue.length || !audioArmed) return;
+    if (!sound || soundBusy || alarmCurrent || !soundQueue.length || !soundUnlocked) return;
     playKind(soundQueue.shift());
   }
 
@@ -623,29 +636,41 @@
     pumpSounds();
   }
 
-  let silentUrl = "";
-  function armAudio() {
-    if (!sound || audioArmed || arming) {
-      if (sound && audioArmed) pumpSounds();
+  function unlockSound() {
+    if (!sound || soundUnlocked) {
+      if (sound && soundUnlocked) pumpSounds();
       return;
     }
+    if (arming) return;
     arming = true;
-    if (!silentUrl) silentUrl = silentClip();
-    const kick = new Audio(silentUrl);
-    kick.muted = true;
-    const played = kick.play();
-    const done = () => {
-      silence(kick);
+    let pending = 3;
+    let ok = false;
+    const finish = (good) => {
+      if (good) ok = true;
+      pending -= 1;
+      if (pending > 0) return;
       arming = false;
-      audioArmed = true;
+      if (!ok) return;
+      soundUnlocked = true;
+      if (alarmCurrent && sound && !soundBusy) playKind(alarmCurrent.kind, finishAlarm);
       pumpSounds();
     };
-    if (played && played.then) played.then(done).catch(() => { arming = false; audioArmed = false; });
-    else done();
+    ["prep", "soon", "start"].forEach((key) => {
+      const audio = voiceFor(key);
+      audio.volume = 0;
+      const played = audio.play();
+      const done = () => {
+        pauseVoice(audio);
+        audio.volume = 1;
+        finish(true);
+      };
+      if (played && played.then) played.then(done).catch(() => finish(false));
+      else done();
+    });
   }
 
   function kindMs(kind) {
-    return Math.ceil(CLIP_SEC[kind] * REPEATS[kind] * 1000);
+    return Math.ceil((CLIP_SEC[kind] || 3) * repeatCount(kind) * 1000);
   }
 
   function groupNotes(items) {
@@ -707,10 +732,11 @@
 
   function beginAlarm(note) {
     alarmCurrent = note;
+    alarmPlayTries = 0;
     const ms = kindMs(note.kind);
     alarmUntil = Date.now() + ms;
     clearTimeout(alarmTimer);
-    if (sound && audioArmed) {
+    if (sound && soundUnlocked) {
       playKind(note.kind, finishAlarm);
       alarmTimer = setTimeout(finishAlarm, ms + 400);
     } else {
@@ -748,12 +774,6 @@
     alarmQueue.push(...notes);
   }
 
-  function notify(title, body) {
-    if (document.visibilityState === "visible") return;
-    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
-    try { new Notification(title, { body }); } catch (err) { /* ignore */ }
-  }
-
   function watch(now) {
     const woke = lastWatch > 0 && now - lastWatch > 2000;
     const fired = [];
@@ -784,14 +804,12 @@
         const entered = (prev && prev !== state) || (!prev && woke);
         if (entered && (state === "prep" || state === "soon" || state === "now")) {
           const kind = state === "now" ? "start" : state;
-          const body = kind === "start" ? t().startBody : kind === "prep" ? t().prepBody : t().soonBody;
           fired.push({ name: ev.name, kind });
-          notify(ev.name, body);
         }
         phase[key] = state;
       });
     });
-    if (sound && audioArmed && soundQueue.length) pumpSounds();
+    if (sound && soundUnlocked && soundQueue.length) pumpSounds();
     if (fired.length) showAlarm(fired);
     lastWatch = now;
   }
@@ -804,9 +822,17 @@
     $("search").placeholder = text.search;
     $("search").setAttribute("aria-label", text.search);
     $("foot").textContent = footText();
-    $("sound").textContent = sound ? text.soundOn : text.soundOff;
-    $("sound").setAttribute("aria-label", sound ? text.soundOn : text.soundOff);
+    $("sound").textContent = text.soundLabel;
+    $("sound").setAttribute("aria-label", text.soundLabel);
     $("sound").setAttribute("aria-pressed", sound ? "true" : "false");
+    $("sound-toggle").textContent = sound ? text.soundOn : text.soundOff;
+    $("sound-toggle").setAttribute("aria-pressed", sound ? "true" : "false");
+    $("sound-prep-label").textContent = text.soundPrep;
+    $("sound-soon-label").textContent = text.soundSoon;
+    $("sound-start-label").textContent = text.soundStart;
+    $("sound-prep").textContent = repeats.prep + "x";
+    $("sound-soon").textContent = repeats.soon + "x";
+    $("sound-start").textContent = repeats.start + "x";
 
     const queueNav = $("queues");
     queueNav.replaceChildren();
@@ -1099,12 +1125,18 @@
   ];
   const sheetHomes = sheetMovers.map((el) => ({ el: el, parent: el.parentNode, next: el.nextSibling }));
 
+  function closeSoundPanel() {
+    $("sound-panel").hidden = true;
+    $("sound").setAttribute("aria-expanded", "false");
+  }
+
   function closeSheet() {
     $("sheet").hidden = true;
     $("menu").setAttribute("aria-expanded", "false");
   }
 
   function openSheet() {
+    closeSoundPanel();
     $("bar").classList.remove("search-open");
     $("sheet").hidden = false;
     $("menu").setAttribute("aria-expanded", "true");
@@ -1145,7 +1177,9 @@
     if (event.target.closest("button, a")) closeSheet();
   });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !$("sheet").hidden) closeSheet();
+    if (event.key !== "Escape") return;
+    if (!$("sheet").hidden) closeSheet();
+    if (!$("sound-panel").hidden) closeSoundPanel();
   });
   applyNarrow(narrowMq.matches);
   narrowMq.addEventListener("change", (event) => applyNarrow(event.matches));
@@ -1167,20 +1201,33 @@
     showToast(ok ? "Pix key copied" : "Could not copy the Pix key", ok ? "" : key);
   });
 
-  $("sound").addEventListener("click", () => {
+  $("sound").addEventListener("click", (event) => {
+    event.stopPropagation();
+    closeSheet();
+    const open = $("sound-panel").hidden;
+    $("sound-panel").hidden = !open;
+    $("sound").setAttribute("aria-expanded", open ? "true" : "false");
+    if (open && sound) unlockSound();
+  });
+  $("sound-panel").addEventListener("click", (event) => event.stopPropagation());
+  document.addEventListener("click", () => {
+    if (!$("sound-panel").hidden) closeSoundPanel();
+  });
+  $("sound-toggle").addEventListener("click", () => {
     sound = !sound;
     localStorage.setItem("gw2-sound", sound ? "1" : "0");
     if (sound) {
-      armAudio();
+      unlockSound();
       enqueueSound("preview");
-      if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission();
-      }
-    } else {
-      audioArmed = false;
-      stopVoice();
-    }
+    } else stopVoice();
     paintChrome();
+  });
+  ["prep", "soon", "start"].forEach((kind) => {
+    $("sound-" + kind).addEventListener("click", () => {
+      repeats[kind] = repeats[kind] >= 5 ? 1 : repeats[kind] + 1;
+      localStorage.setItem("gw2-sound-repeats", JSON.stringify(repeats));
+      paintChrome();
+    });
   });
 
   $("alarm").addEventListener("click", finishAlarm);
@@ -1231,17 +1278,21 @@
   document.addEventListener("scroll", hideTip, true);
 
   document.addEventListener("pointerdown", () => {
-    if (sound) armAudio();
+    if (sound) unlockSound();
   });
 
   function onWake() {
-    if (alarmCurrent && voice && voice.paused && !voice.ended && sound && audioArmed) {
-      const again = voice.play();
+    const playing = alarmVoice();
+    if (alarmCurrent && playing && playing.paused && !playing.ended && sound && soundUnlocked && soundBusy) {
+      const again = playing.play();
       if (again && again.catch) again.catch(() => {});
+    } else if (alarmCurrent && sound && soundUnlocked && !soundBusy) {
+      playKind(alarmCurrent.kind, finishAlarm);
     }
     if (alarmHold && alarmCurrent) {
-      const playing = voice && !voice.paused && !voice.ended;
-      if (alarmUntil > Date.now() || playing) revealAlarm();
+      const alive = alarmVoice();
+      const stillPlaying = alive && !alive.paused && !alive.ended;
+      if (alarmUntil > Date.now() || stillPlaying) revealAlarm();
       else finishAlarm();
     }
     renderList();
