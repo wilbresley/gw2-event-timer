@@ -1085,7 +1085,13 @@
     }
   }
 
-  $("pix").addEventListener("click", async () => {
+  const pixModal = $("pix-modal");
+  $("pix").addEventListener("click", () => pixModal.showModal());
+  pixModal.addEventListener("click", (event) => {
+    if (event.target === pixModal) pixModal.close();
+  });
+  $("pix-close").addEventListener("click", () => pixModal.close());
+  $("pix-copy").addEventListener("click", async () => {
     const key = $("pix").getAttribute("data-pix");
     const ok = await copyText(key);
     showToast(ok ? "Pix key copied" : "Could not copy the Pix key", ok ? "" : key);

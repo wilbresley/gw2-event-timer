@@ -14,7 +14,17 @@ Copiar a pasta `site` basta para continuar usando o timer sem servidor nenhum: a
 
 Qualquer pessoa pode clonar e usar este projeto. Se for reutilizar, publicar um fork ou usar como base de outra ferramenta, a única coisa pedida é mencionar este projeto como inspiração ou como o fork de origem.
 
-Se o timer ajudou e você quiser incentivar, mande um mimo no Guild Wars 2 para a conta **Bresleywil.2384**. Também dá para [apoiar o projeto no GitHub](https://github.com/sponsors/wilbresley). No Brasil, o Pix usa a chave aleatória `a8d44088-1b08-465d-aac1-29ca42014692`.
+Se o timer ajudou, dá para mandar um mimo no Guild Wars 2 para a conta **Bresleywil.2384**, ou pagar um café.
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?style=for-the-badge)](https://github.com/sponsors/wilbresley)
+
+**Pix, para o Brasil.** Escaneie o código no aplicativo do banco e escolha o valor. O bloco embaixo do código tem o botão de copiar do GitHub.
+
+![QR code do Pix](site/assets/pix-qr.png)
+
+```text
+a8d44088-1b08-465d-aac1-29ca42014692
+```
 
 ## O que você precisa
 

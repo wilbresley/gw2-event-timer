@@ -129,6 +129,10 @@ a.tool svg {
   flex: 0 0 auto;
 }
 
+a.tool.sponsor-link svg {
+  fill: #ea4aaa;
+}
+
 .api-sync {
   width: 12px;
   height: 12px;
@@ -365,6 +369,48 @@ a.tool svg {
 
 .foot.credit {
   margin-bottom: 0.15rem;
+}
+
+.pix-modal {
+  width: min(22rem, calc(100vw - 1.5rem));
+  margin: auto;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--bar);
+  color: var(--text);
+  padding: 1rem 1rem 0.9rem;
+  text-align: center;
+}
+
+.pix-modal::backdrop {
+  background: rgba(0, 0, 0, 0.62);
+}
+
+.pix-modal h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.pix-modal p {
+  margin: 0.35rem 0 0.75rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.pix-modal img {
+  width: min(240px, 68vw);
+  height: auto;
+  background: #fff;
+  border-radius: 0.7rem;
+  padding: 0.45rem;
+}
+
+.pix-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
 }
 
 .toast {

@@ -14,7 +14,17 @@ Copying the `site` folder is enough to keep using the timer with no server at al
 
 Anyone can clone and use this project. If you reuse it, publish a fork, or take it as the base of another tool, please mention this project as the inspiration or as the fork it came from.
 
-If the timer helped you and you want to say thanks, send a gift in Guild Wars 2 to **Bresleywil.2384**. You can also [sponsor the project on GitHub](https://github.com/sponsors/wilbresley). In Brazil, a Pix transfer uses the random key `a8d44088-1b08-465d-aac1-29ca42014692`.
+If the timer helped, you can send a gift in Guild Wars 2 to **Bresleywil.2384**, or buy a coffee.
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?style=for-the-badge)](https://github.com/sponsors/wilbresley)
+
+**Pix, for Brazil.** Scan the code in your bank app and choose the amount. The block under the code has GitHub's copy button.
+
+![Pix QR code](site/assets/pix-qr.png)
+
+```text
+a8d44088-1b08-465d-aac1-29ca42014692
+```
 
 ## What you need
 
