@@ -28,7 +28,7 @@ O Cloudflare Pages aplica o `_headers` e ignora o `nginx.conf`. O container apli
 
 A política atual é pequena de propósito. Ela permite os arquivos da própria página, `api.guildwars2.com` para as leituras da conta, `render.guildwars2.com` para os ícones dos itens, `blob:` para o worker que mantém o relógio andando em aba de segundo plano, e `data:` para as máscaras do CSS. Se você adicionar um script de terceiro, uma fonte de CDN ou uma imagem de outro host, a política precisa ser ampliada nos dois arquivos, senão o navegador bloqueia sem avisar na tela.
 
-O `nginx.conf` também responde 404 de verdade quando falta um `.js`, `.css`, `.png` ou `.mp3`. O Cloudflare Pages já faz isso sozinho. Não remova a regra: sem ela, um arquivo renomeado devolve a página HTML com status 200 e o navegador falha com um erro de tipo que não explica nada.
+O `nginx.conf` também responde 404 de verdade quando falta um `.js`, `.css`, `.png` ou `.mp3`. O Cloudflare Pages só faz isso se existir um `site/404.html` na raiz: **sem esse arquivo, o Pages acha que o projeto é uma aplicação de página única e responde a qualquer caminho inexistente com o `index.html` e status 200.** Isso já escondeu um arquivo renomeado atrás de uma página HTML. **Não apague o `site/404.html`.**
 
 ## Publicar
 

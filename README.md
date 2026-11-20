@@ -318,6 +318,7 @@ Nothing from the timer is sent to a server beyond the page itself. Favorites, al
 | `site/account.js` | Account panel, loaded only when someone opens Account |
 | `site/account.css` | Account panel look |
 | `site/_headers` | Security headers and caching, read by Cloudflare Pages |
+| `site/404.html` | Shown for an address that does not exist. Without it, Pages answers every missing path with the home page |
 | `site/assets/` | Page icon, shared-inventory icon, and the sounds |
 
 The image used is `nginx:1.30-alpine`. It is not built in this repository. Compose only mounts `site` at `/usr/share/nginx/html` and `nginx.conf` at `/etc/nginx/conf.d/default.conf`, both read-only.

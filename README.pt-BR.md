@@ -318,6 +318,7 @@ Nada do timer é enviado a um servidor além da própria página. Favoritos, ale
 | `site/account.js` | Painel da conta, carregado só quando alguém abre Account |
 | `site/account.css` | Visual do painel da conta |
 | `site/_headers` | Cabeçalhos de segurança e cache, lidos pelo Cloudflare Pages |
+| `site/404.html` | Mostrado num endereço que não existe. Sem ele, o Pages responde qualquer caminho inexistente com a página inicial |
 | `site/assets/` | Ícone da página, ícone do inventário compartilhado e os sons |
 
 A imagem usada é `nginx:1.30-alpine`. Ela não é construída neste repositório. O Compose só monta `site` em `/usr/share/nginx/html` e `nginx.conf` em `/etc/nginx/conf.d/default.conf`, os dois só para leitura.
