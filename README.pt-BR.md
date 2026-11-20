@@ -14,6 +14,8 @@ Copiar a pasta `site` basta para continuar usando o timer sem servidor nenhum: a
 
 Qualquer pessoa pode clonar e usar este projeto. Se for reutilizar, publicar um fork ou usar como base de outra ferramenta, a única coisa pedida é mencionar este projeto como inspiração ou como o fork de origem.
 
+Se você for mexer no código, leia o `AGENTS.md` antes. Ele registra onde a página está hospedada, os dois arquivos de cabeçalho que precisam andar juntos, a regra do `?v=`, e as decisões que parecem erradas mas são de propósito.
+
 Se o timer ajudou, dá para mandar um mimo no Guild Wars 2 para a conta **Bresleywil.2384**, ou pagar um café.
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?style=for-the-badge)](https://github.com/sponsors/wilbresley)
@@ -126,9 +128,9 @@ O Cloudflare Pages é o host recomendado aqui, porque o domínio já usa Cloudfl
 
 1. No painel da Cloudflare, abra **Workers & Pages**, depois **Create**, depois **Pages**, depois **Connect to Git**.
 2. Escolha o repositório `gw2-event-timer` e o branch `main`.
-3. Framework preset: **None**. Build command: deixe vazio. Build output directory: `site`.
-4. Salve e publique. A Cloudflare mostra um endereço tipo `gw2-event-timer.pages.dev`.
-5. Quando estiver bom, abra a aba **Custom domains** do projeto e adicione o domínio, por exemplo `gw2.bresley.win`. A Cloudflare cria o registro de DNS e o certificado.
+3. Framework preset: **None**. Build command: `exit 0`. Build output directory: `site`.
+4. Salve e publique. A Cloudflare mostra um endereço tipo `NOME-DO-PROJETO.pages.dev`.
+5. Quando estiver bom, abra a aba **Custom domains** do projeto e adicione o domínio, por exemplo `timer.example.com`. A Cloudflare cria o registro de DNS e o certificado.
 
 Publicar passa a ser um `git push` no `main`. Nada além disso.
 
@@ -306,6 +308,7 @@ Nada do timer é enviado a um servidor além da própria página. Favoritos, ale
 | `VERSION` | Número desta versão: 1.0.1 |
 | `README.md` | Documentação em inglês |
 | `README.pt-BR.md` | Esta documentação |
+| `AGENTS.md` | Notas para quem mexer no código depois, inclusive uma IA |
 | `site/` | HTML, CSS, JavaScript e a agenda |
 | `site/index.html` | Casca da página |
 | `site/version.js` | O único lugar onde o número da versão está escrito para a página |

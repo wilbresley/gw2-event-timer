@@ -14,6 +14,8 @@ Copying the `site` folder is enough to keep using the timer with no server at al
 
 Anyone can clone and use this project. If you reuse it, publish a fork, or take it as the base of another tool, please mention this project as the inspiration or as the fork it came from.
 
+If you are going to change the code, read `AGENTS.md` first. It records where the page is hosted, the two header files that must stay in sync, the `?v=` rule, and the decisions that look wrong but are deliberate.
+
 If the timer helped, you can send a gift in Guild Wars 2 to **Bresleywil.2384**, or buy a coffee.
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?style=for-the-badge)](https://github.com/sponsors/wilbresley)
@@ -126,9 +128,9 @@ Cloudflare Pages is the recommended host here, because the domain already uses C
 
 1. In the Cloudflare dashboard, open **Workers & Pages**, then **Create**, then **Pages**, then **Connect to Git**.
 2. Pick the `gw2-event-timer` repository and the `main` branch.
-3. Framework preset: **None**. Build command: leave empty. Build output directory: `site`.
-4. Save and deploy. Cloudflare prints an address like `gw2-event-timer.pages.dev`.
-5. When it looks right, open the **Custom domains** tab of the project and add the domain, for example `gw2.bresley.win`. Cloudflare creates the DNS record and the certificate.
+3. Framework preset: **None**. Build command: `exit 0`. Build output directory: `site`.
+4. Save and deploy. Cloudflare prints an address like `PROJECT-NAME.pages.dev`.
+5. When it looks right, open the **Custom domains** tab of the project and add the domain, for example `timer.example.com`. Cloudflare creates the DNS record and the certificate.
 
 Publishing is then a `git push` on `main`. Nothing else.
 
@@ -306,6 +308,7 @@ Nothing from the timer is sent to a server beyond the page itself. Favorites, al
 | `VERSION` | This version number: 1.0.1 |
 | `README.md` | This documentation |
 | `README.pt-BR.md` | The same documentation in Portuguese |
+| `AGENTS.md` | Notes for whoever changes the code later, including an AI assistant |
 | `site/` | HTML, CSS, JavaScript, and the schedule |
 | `site/index.html` | Page shell |
 | `site/version.js` | The only place the version number is written for the page |
