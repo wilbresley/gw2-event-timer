@@ -58,7 +58,7 @@ Para ver se subiu:
 docker compose ps
 ```
 
-A coluna de estado deve mostrar o container em execução. O nome dele é `gw2-event-timer`.
+A coluna de estado deve mostrar o container em execução. O nome dele é `gw2-eventos`.
 
 Para parar, sem apagar a pasta:
 

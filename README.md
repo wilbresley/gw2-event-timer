@@ -58,7 +58,7 @@ To check that it is up:
 docker compose ps
 ```
 
-The state column should show the container running. Its name is `gw2-event-timer`.
+The state column should show the container running. Its name is `gw2-eventos`.
 
 To stop it, without deleting the folder:
 
