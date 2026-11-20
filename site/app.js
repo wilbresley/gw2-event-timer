@@ -3,67 +3,6 @@
 (function () {
   const data = window.GW2;
   const I18N = {
-    pt: {
-      title: "Gw2 Event Timer",
-      lang: "EN",
-      html: "pt-BR",
-      soundLabel: "Som",
-      soundOn: "Som ligado",
-      soundOff: "Som desligado",
-      soundPrep: "Preparar",
-      soundSoon: "Som 10 min",
-      soundStart: "Começou",
-      search: "Buscar pelo nome",
-      favorites: "Favoritos",
-      alerts: "Alertas",
-      closeAlarm: "Toque para fechar",
-      addFav: "Adicionar favorito",
-      removeFav: "Remover favorito",
-      addAlert: "Ativar alerta",
-      removeAlert: "Desativar alerta",
-      markDone: "Marcar que já fiz hoje",
-      copyTip: "Copiar teleporte",
-      queues: [
-        ["active", "Ativos"],
-        ["soon", "Em 10 min"],
-        ["done", "Concluídos"]
-      ],
-      sections: { active: "Ativos", soon: "Em 10 min", prep: "Preparar", later: "Próximos", done: "Concluídos" },
-      parts: { madrugada: "Madrugada", manha: "Manhã", tarde: "Tarde", noite: "Noite" },
-      filters: [
-        ["main", "Principais", ""],
-        ["boss", "Chefes", ""],
-        ["meta", "Metas", ""],
-        ["core", "Core Tyria", ""],
-        ["hot", "HoT - Heart of Thorns", ""],
-        ["pof", "PoF - Path of Fire", ""],
-        ["ibs", "IBS - Icebrood Saga", ""],
-        ["eod", "EoD - End of Dragons", ""],
-        ["soto", "SotO - Secrets of the Obscure", ""],
-        ["janthir", "JW - Janthir Wilds", ""],
-        ["voe", "VoE - Visions of Eternity", ""]
-      ],
-      now: "Agora",
-      ends: "acaba em",
-      in: "em",
-      tomorrow: "amanhã",
-      yesterday: "ontem",
-      copy: "TP",
-      copied: "Código copiado. Cole no chat do jogo.",
-      copyFail: "Copia este código e cola no chat:",
-      done: "Já fiz",
-      undo: "Desfazer",
-      alert: "Avisar",
-      empty: "Nada nessa combinação.",
-      soonBody: "começa em 10 minutos",
-      startBody: "começou agora",
-      soonTitle: "Em 10 minutos",
-      startTitle: "Começou agora",
-      prepTitle: "Preparar",
-      prepStatus: "prepara o mapa",
-      prepBody: "hora de achar mapa e grupo",
-      phases: { Day: "Dia", Dusk: "Entardecer", Night: "Noite", Dawn: "Amanhecer" }
-    },
     en: {
       title: "Gw2 Event Timer",
       lang: "PT-BR",
@@ -128,23 +67,46 @@
   };
 
   const $ = (id) => document.getElementById(id);
+  function readJSON(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw === null || raw === "") return fallback;
+      const value = JSON.parse(raw);
+      return value === null || value === undefined ? fallback : value;
+    } catch (err) { return fallback; }
+  }
+  function readList(key) {
+    const value = readJSON(key, []);
+    return Array.isArray(value) ? value : [];
+  }
+  function readObject(key) {
+    const value = readJSON(key, {});
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  }
+  function readFlag(key) {
+    try { return localStorage.getItem(key); } catch (err) { return null; }
+  }
+  function writeFlag(key, value) {
+    try { localStorage.setItem(key, value); } catch (err) { /* modo privado ou cota cheia */ }
+  }
+  function writeJSON(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (err) { /* modo privado ou cota cheia */ }
+  }
   function loadSet(key) {
-    try { return new Set(JSON.parse(localStorage.getItem(key) || "[]")); }
+    try { return new Set(readList(key)); }
     catch (err) { return new Set(); }
   }
 
   let lang = "en";
-  let sound = localStorage.getItem("gw2-sound") !== "0";
+  let sound = readFlag("gw2-sound") !== "0";
   const REPEAT_DEFAULT = { prep: 2, soon: 3, start: 5 };
   function loadRepeats() {
     const counts = { prep: 2, soon: 3, start: 5 };
-    try {
-      const saved = JSON.parse(localStorage.getItem("gw2-sound-repeats") || "{}");
-      Object.keys(counts).forEach((key) => {
-        const count = Math.round(Number(saved[key]));
-        if (count >= 1 && count <= 5) counts[key] = count;
-      });
-    } catch (err) { /* keep the defaults */ }
+    const saved = readObject("gw2-sound-repeats");
+    Object.keys(counts).forEach((key) => {
+      const count = Math.round(Number(saved[key]));
+      if (count >= 1 && count <= 5) counts[key] = count;
+    });
     return counts;
   }
   let repeats = loadRepeats();
@@ -152,21 +114,19 @@
     if (kind === "preview") return 1;
     return repeats[kind] || REPEAT_DEFAULT[kind] || 1;
   }
-  let cats = new Set(localStorage.getItem("gw2-cats")
-    ? JSON.parse(localStorage.getItem("gw2-cats"))
-    : [localStorage.getItem("gw2-filter") || "main"]);
-  let queues = new Set(JSON.parse(localStorage.getItem("gw2-queues") || "[]"));
-  let favOn = localStorage.getItem("gw2-fav") === "1";
-  let alertOn = localStorage.getItem("gw2-alert-on") === "1";
+  let cats = new Set(readList("gw2-cats").length ? readList("gw2-cats") : [readFlag("gw2-filter") || "main"]);
+  let queues = new Set(readList("gw2-queues"));
+  let favOn = readFlag("gw2-fav") === "1";
+  let alertOn = readFlag("gw2-alert-on") === "1";
   let query = "";
-  let alertIds = localStorage.getItem("gw2-alerts") === null
+  let alertIds = readFlag("gw2-alerts") === null
     ? loadSet("gw2-stars")
     : loadSet("gw2-alerts");
-  if (localStorage.getItem("gw2-alerts") === null) {
-    localStorage.setItem("gw2-alerts", JSON.stringify([...alertIds]));
+  if (readFlag("gw2-alerts") === null) {
+    writeJSON("gw2-alerts", [...alertIds]);
   }
   let favs = loadSet("gw2-favs");
-  let done = JSON.parse(localStorage.getItem("gw2-done") || "{}");
+  let done = readObject("gw2-done");
   let toastTimer = 0;
   let alarmTimer = 0;
   let alarmHold = false;
@@ -177,6 +137,8 @@
   let lastSig = "";
   let tipTimer = 0;
   let lastWatch = 0;
+  let alarmHadFocus = false;
+  let alarmFocusBack = null;
   let soundUnlocked = false;
   let soundBusy = false;
   let repeatLeft = 0;
@@ -186,6 +148,8 @@
   const voices = {};
   let arming = false;
   const phase = {};
+  const phaseEnd = {};
+  const PHASE_KEEP_MS = 36 * 3600 * 1000;
   const PREP_MIN = { "g10-3": 20, "g9-3": 15, "g11-1": 15 };
 
   function t() { return I18N[lang]; }
@@ -262,7 +226,7 @@
         changed = true;
       });
       if (!changed) return;
-      localStorage.setItem("gw2-done", JSON.stringify(done));
+      writeJSON("gw2-done", done);
       redraw();
     }
   };
@@ -306,39 +270,19 @@
     return running;
   }
 
-  function cycleName(now) {
-    const minute = new Date(now).getUTCHours() * 60 + new Date(now).getUTCMinutes();
-    const partial = data.cycle.partial;
-    const pattern = data.cycle.pattern;
-    let at = 0;
-    const walk = (step) => {
-      const end = at + step[1];
-      if (minute >= at && minute < end) {
-        const seg = data.cycle.segments.find((s) => s.id === step[0]);
-        return seg ? seg.name : "";
-      }
-      at = end;
-      return "";
-    };
-    for (const step of partial) {
-      const hit = walk(step);
-      if (hit) return hit;
+  const formatters = new Map();
+  function formatter(locale, options) {
+    const key = locale + "|" + JSON.stringify(options);
+    let made = formatters.get(key);
+    if (!made) {
+      made = new Intl.DateTimeFormat(locale, options);
+      formatters.set(key, made);
     }
-    const span = pattern.reduce((sum, step) => sum + step[1], 0) || 1;
-    let left = (minute - at) % span;
-    if (left < 0) left += span;
-    for (const step of pattern) {
-      if (left < step[1]) {
-        const seg = data.cycle.segments.find((s) => s.id === step[0]);
-        return seg ? seg.name : "";
-      }
-      left -= step[1];
-    }
-    return "";
+    return made;
   }
 
   function fmtClock(ms) {
-    return new Intl.DateTimeFormat(t().html, {
+    return formatter(t().html, {
       hour: "2-digit",
       minute: "2-digit",
       hourCycle: "h23"
@@ -366,14 +310,23 @@
     return m + ":" + String(s).padStart(2, "0");
   }
 
+  let zoneName = "";
+  function zone() {
+    if (!zoneName) {
+      try {
+        zoneName = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+      } catch (err) { zoneName = "UTC"; }
+    }
+    return zoneName;
+  }
+
   function placeName() {
-    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-    return zone.split("/").pop().replace(/_/g, " ");
+    return zone().split("/").pop().replace(/_/g, " ");
   }
 
   function resetClock() {
     const mark = new Date(Date.UTC(2026, 0, 1, 0, 0, 0));
-    return new Intl.DateTimeFormat(t().html, {
+    return formatter(t().html, {
       hour: "2-digit",
       minute: "2-digit",
       hourCycle: "h23"
@@ -465,15 +418,15 @@
   }
 
   function saveFavs() {
-    localStorage.setItem("gw2-favs", JSON.stringify([...favs]));
+    writeJSON("gw2-favs", [...favs]);
   }
 
   function saveAlerts() {
-    localStorage.setItem("gw2-alerts", JSON.stringify([...alertIds]));
+    writeJSON("gw2-alerts", [...alertIds]);
   }
 
   function saveDone() {
-    localStorage.setItem("gw2-done", JSON.stringify(done));
+    writeJSON("gw2-done", done);
   }
 
   function isDone(id, now) {
@@ -527,7 +480,6 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { box.hidden = true; }, 2800);
   }
-
   const clips = {
     prep: "assets/sounds/prep.mp3?v=2",
     soon: "assets/sounds/soon.mp3?v=2",
@@ -693,6 +645,14 @@
     alarmUntil = 0;
     alarmCurrent = null;
     alarmQueue.length = 0;
+    if (alarmHadFocus) {
+      alarmHadFocus = false;
+      const back = alarmFocusBack;
+      alarmFocusBack = null;
+      if (back && back.isConnected && typeof back.focus === "function") {
+        try { back.focus({ preventScroll: true }); } catch (err) { /* o elemento saiu da tela */ }
+      }
+    }
   }
 
   function paintAlarm() {
@@ -728,6 +688,11 @@
     box.classList.remove("on");
     void box.offsetWidth;
     box.classList.add("on");
+    if (!alarmHadFocus && document.activeElement !== box) {
+      alarmFocusBack = document.activeElement;
+      alarmHadFocus = true;
+      try { box.focus({ preventScroll: true }); } catch (err) { /* sem foco: o leitor ainda lê o anúncio */ }
+    }
   }
 
   function beginAlarm(note) {
@@ -774,10 +739,18 @@
     alarmQueue.push(...notes);
   }
 
+  function prunePhase(now) {
+    Object.keys(phaseEnd).forEach((key) => {
+      if (now - phaseEnd[key] > PHASE_KEEP_MS) {
+        delete phase[key];
+        delete phaseEnd[key];
+      }
+    });
+  }
+
   function watch(now) {
     const woke = lastWatch > 0 && now - lastWatch > 2000;
-    const fired = [];
-    data.events.forEach((ev) => {
+    const fired = [];    data.events.forEach((ev) => {
       if (!alertIds.has(ev.id) || isDone(ev.id, now)) return;
       const running = nextOf(ev, now);
       if (!running) return;
@@ -807,8 +780,10 @@
           fired.push({ name: ev.name, kind });
         }
         phase[key] = state;
+        phaseEnd[key] = when.end;
       });
     });
+    prunePhase(now);
     if (sound && soundUnlocked && soundQueue.length) pumpSounds();
     if (fired.length) showAlarm(fired);
     lastWatch = now;
@@ -835,60 +810,76 @@
     $("sound-start").textContent = repeats.start + "x";
 
     const queueNav = $("queues");
-    queueNav.replaceChildren();
-    text.queues.forEach(([id, label]) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "chip";
-      btn.textContent = label;
-      btn.setAttribute("aria-pressed", queues.has(id) ? "true" : "false");
-      btn.addEventListener("click", () => {
-        if (queues.has(id)) queues.delete(id);
-        else queues.add(id);
-        localStorage.setItem("gw2-queues", JSON.stringify([...queues]));
-        paintChrome();
-        redraw();
+    if (!queueNav.children.length) {
+      text.queues.forEach(([id, label]) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip";
+        btn.dataset.queue = id;
+        btn.textContent = label;
+        btn.addEventListener("click", () => {
+          if (queues.has(id)) queues.delete(id);
+          else queues.add(id);
+          writeJSON("gw2-queues", [...queues]);
+          paintChipState();
+          redraw();
+        });
+        queueNav.append(btn);
       });
-      queueNav.append(btn);
-    });
-    queueNav.append(toggleChip(text.favorites, favOn, () => {
-      favOn = !favOn;
-      localStorage.setItem("gw2-fav", favOn ? "1" : "0");
-    }));
-    queueNav.append(toggleChip(text.alerts, alertOn, () => {
-      alertOn = !alertOn;
-      localStorage.setItem("gw2-alert-on", alertOn ? "1" : "0");
-    }));
+      queueNav.append(toggleChip(text.favorites, "fav", () => {
+        favOn = !favOn;
+        writeFlag("gw2-fav", favOn ? "1" : "0");
+      }));
+      queueNav.append(toggleChip(text.alerts, "alerts", () => {
+        alertOn = !alertOn;
+        writeFlag("gw2-alert-on", alertOn ? "1" : "0");
+      }));
+    }
 
     const nav = $("filters");
-    nav.replaceChildren();
-    text.filters.forEach(([id, label, tip]) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "chip";
-      btn.textContent = label;
-      if (tip) btn.setAttribute("data-tip", tip);
-      btn.setAttribute("aria-pressed", cats.has(id) ? "true" : "false");
-      btn.addEventListener("click", () => {
-        if (cats.has(id)) cats.delete(id);
-        else cats.add(id);
-        localStorage.setItem("gw2-cats", JSON.stringify([...cats]));
-        paintChrome();
-        redraw();
+    if (!nav.children.length) {
+      text.filters.forEach(([id, label, tip]) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip";
+        btn.dataset.cat = id;
+        btn.textContent = label;
+        if (tip) btn.setAttribute("data-tip", tip);
+        btn.addEventListener("click", () => {
+          if (cats.has(id)) cats.delete(id);
+          else cats.add(id);
+          writeJSON("gw2-cats", [...cats]);
+          paintChipState();
+          redraw();
+        });
+        nav.append(btn);
       });
-      nav.append(btn);
-    });
+    }
+    paintChipState();
   }
 
-  function toggleChip(label, pressed, flip) {
+  function paintChipState() {
+    document.querySelectorAll("#queues [data-queue]").forEach((btn) => {
+      btn.setAttribute("aria-pressed", queues.has(btn.dataset.queue) ? "true" : "false");
+    });
+    document.querySelectorAll("#filters [data-cat]").forEach((btn) => {
+      btn.setAttribute("aria-pressed", cats.has(btn.dataset.cat) ? "true" : "false");
+    });
+    const fav = document.querySelector('#queues [data-toggle="fav"]');
+    if (fav) fav.setAttribute("aria-pressed", favOn ? "true" : "false");
+    const alerts = document.querySelector('#queues [data-toggle="alerts"]');
+    if (alerts) alerts.setAttribute("aria-pressed", alertOn ? "true" : "false");
+  }
+
+  function toggleChip(label, key, flip) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "chip";
+    btn.dataset.toggle = key;
     btn.textContent = label;
-    btn.setAttribute("aria-pressed", pressed ? "true" : "false");
     btn.addEventListener("click", () => {
       flip();
-      paintChrome();
+      paintChipState();
       redraw();
     });
     return btn;
@@ -1076,17 +1067,20 @@
     pruneDone(now);
     watch(now);
     const text = t();
-    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     $("clock").textContent = document.body.classList.contains("is-narrow")
       ? fmtClock(now)
-      : fmtClock(now) + " · " + zone + " · " + dayPart(now);
+      : fmtClock(now) + " · " + zone() + " · " + dayPart(now);
 
     const { groups, order } = collect(now);
     const sig = lang + "|" + order.map((key) => key + ":" + groups[key].map((row) => row.ev.id).join(",")).join("|");
     const list = $("list");
     if (sig === lastSig) {
+      const byId = new Map();
+      order.forEach((key) => {
+        groups[key].forEach((row) => byId.set(row.ev.id, row));
+      });
       list.querySelectorAll(".card").forEach((card) => {
-        const row = order.flatMap((key) => groups[key]).find((item) => item.ev.id === card.dataset.id);
+        const row = byId.get(card.dataset.id);
         if (row) paintTimes(card, row.when, now, row.bucket);
       });
       return;
@@ -1131,8 +1125,45 @@
   }
 
   function closeSheet() {
+    const wasOpen = !$("sheet").hidden;
     $("sheet").hidden = true;
     $("menu").setAttribute("aria-expanded", "false");
+    const menu = $("menu");
+    if (wasOpen && menu.getClientRects().length > 0 && sheetCard && sheetCard.contains(document.activeElement)) {
+      try { menu.focus({ preventScroll: true }); } catch (err) { /* sem foco */ }
+    }
+  }
+
+  const sheetCard = document.querySelector(".sheet-card");
+
+  function sheetFocusables() {
+    if (!sheetCard) return [];
+    return [...sheetCard.querySelectorAll("button, a[href], input, [tabindex]:not([tabindex='-1'])")]
+      .filter((node) => !node.disabled && node.getClientRects().length > 0);
+  }
+
+  function trapSheetFocus(event) {
+    if ($("sheet").hidden) return false;
+    if (event.key === "Escape") {
+      closeSheet();
+      return true;
+    }
+    if (event.key !== "Tab") return false;
+    const nodes = sheetFocusables();
+    if (!nodes.length) return true;
+    const first = nodes[0];
+    const last = nodes[nodes.length - 1];
+    if (event.shiftKey && (document.activeElement === first || !sheetCard.contains(document.activeElement))) {
+      event.preventDefault();
+      last.focus();
+      return true;
+    }
+    if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+      return true;
+    }
+    return false;
   }
 
   function openSheet() {
@@ -1140,6 +1171,7 @@
     $("bar").classList.remove("search-open");
     $("sheet").hidden = false;
     $("menu").setAttribute("aria-expanded", "true");
+    try { $("sheet-close").focus({ preventScroll: true }); } catch (err) { /* sem foco */ }
   }
 
   function applyNarrow(on) {
@@ -1177,6 +1209,7 @@
     if (event.target.closest("button, a")) closeSheet();
   });
   document.addEventListener("keydown", (event) => {
+    if (trapSheetFocus(event)) return;
     if (event.key !== "Escape") return;
     if (!$("sheet").hidden) closeSheet();
     if (!$("sound-panel").hidden) closeSoundPanel();
@@ -1215,7 +1248,7 @@
   });
   $("sound-toggle").addEventListener("click", () => {
     sound = !sound;
-    localStorage.setItem("gw2-sound", sound ? "1" : "0");
+    writeFlag("gw2-sound", sound ? "1" : "0");
     if (sound) {
       unlockSound();
       enqueueSound("preview");
@@ -1225,7 +1258,7 @@
   ["prep", "soon", "start"].forEach((kind) => {
     $("sound-" + kind).addEventListener("click", () => {
       repeats[kind] = repeats[kind] >= 5 ? 1 : repeats[kind] + 1;
-      localStorage.setItem("gw2-sound-repeats", JSON.stringify(repeats));
+      writeJSON("gw2-sound-repeats", repeats);
       paintChrome();
     });
   });
@@ -1305,7 +1338,46 @@
 
   paintChrome();
   renderList();
-  setInterval(renderList, 1000);
+  const versionLine = $("version-line");
+  if (versionLine) versionLine.textContent = "Version " + (window.GW2_VERSION || "1.0.1") + " · Bresleywil.2384";
+
+  /* The account panel is 200 KB. Only someone who uses it pays for it:
+     a saved key loads it at boot (the tool shelf needs it), anyone else
+     gets it on the first click on Account. */
+  let accountLoad = null;
+  function loadAccount(thenOpen) {
+    if (accountLoad) {
+      accountLoad.then(() => { if (thenOpen) $("account").click(); });
+      return accountLoad;
+    }
+    accountLoad = new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "account.js?v=38";
+      script.async = true;
+      script.onload = () => {
+        $("account").dataset.ready = "1";
+        resolve();
+        if (thenOpen) $("account").click();
+      };
+      script.onerror = () => {
+        accountLoad = null;
+        showToast("The account panel did not load.");
+        resolve();
+      };
+      document.body.append(script);
+    });
+    return accountLoad;
+  }
+  const accountBtn = $("account");
+  accountBtn.addEventListener("click", (event) => {
+    if (accountBtn.dataset.ready === "1") return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    loadAccount(true);
+  }, true);
+  if (readFlag("gw2-token")) loadAccount(false);
+
+  let ticking = false;
   try {
     const url = URL.createObjectURL(new Blob(
       ["setInterval(function(){postMessage(0)},1000)"],
@@ -1313,5 +1385,7 @@
     ));
     const worker = new Worker(url);
     worker.onmessage = () => renderList();
-  } catch (err) { /* o intervalo acima segue o relógio */ }
+    ticking = true;
+  } catch (err) { /* sem worker: o intervalo abaixo segue o relógio */ }
+  if (!ticking) setInterval(renderList, 1000);
 })();

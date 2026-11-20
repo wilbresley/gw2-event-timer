@@ -21,118 +21,6 @@
   const SLOT_ORDER = ["Helm", "Shoulders", "Coat", "Gloves", "Leggings", "Boots", "WeaponA1", "WeaponA2", "WeaponB1", "WeaponB2", "Backpack", "Accessory1", "Accessory2", "Amulet", "Ring1", "Ring2", "Relic", "HelmAquatic", "WeaponAquaticA", "WeaponAquaticB", "Sickle", "Axe", "Pick"];
 
   const COPY = {
-    pt: {
-      account: "Conta",
-      summary: "Resumo",
-      ascended: "Ascended",
-      inventory: "Inventário",
-      characters: "Personagens",
-      bosses: "Chefes",
-      wallet: "Carteira",
-      unlocks: "Desbloqueios",
-      trade: "Pregão",
-      pvp: "PvP",
-      wvw: "WvW",
-      progress: "Progresso",
-      guilds: "Guildas",
-      save: "Salvar chave",
-      refresh: "Atualizar",
-      forget: "Esquecer chave",
-      forget2: "Apagar deste navegador?",
-      reading: "Lendo a conta…",
-      chars: "Lendo os personagens…",
-      bank: "Lendo banco e bolsas…",
-      items: "Lendo os itens…",
-      extra: "Lendo o resto da conta…",
-      keyTitle: "Chave da API",
-      keyLead: "A chave fica só neste navegador. O servidor desta página não recebe e não guarda ela. Se limpar o cache, cola de novo.",
-      keyPh: "Cole a chave da conta",
-      keyLink: "Criar uma chave em account.arena.net",
-      keyBad: "A ArenaNet recusou essa chave.",
-      keyNet: "Não consegui falar com a API agora. Tenta de novo.",
-      perms: "Marca estas permissões ao criar a chave:",
-      missing: "Faltam permissões:",
-      saved: "Salvo neste navegador",
-      updating: "Atualizando…",
-      names: "Os nomes dos itens vêm em inglês. A API do jogo não entrega português.",
-      empty: "Nada com esse filtro.",
-      bankL: "Banco",
-      shared: "Compartilhado",
-      materials: "Materiais",
-      armory: "Arsenal lendário",
-      bag: "Bolsa",
-      equipped: "Equipado",
-      onChar: "no personagem",
-      tab: "Aba",
-      active: "ativa",
-      weapons: "Armas",
-      trinkets: "Joias",
-      stuff: "Itens",
-      armor: "Armadura",
-      upgrades: "Melhorias e infusões",
-      other: "Outros",
-      all: "Todos",
-      search: "Buscar pelo nome",
-      where: "Onde",
-      anywhere: "Qualquer lugar",
-      count: "mostrando",
-      of: "de",
-      refine: "Aperta o filtro ou busca pelo nome para ver o resto.",
-      level: "nível",
-      race: "Raça",
-      gender: "Gênero",
-      age: "Tempo jogado",
-      deaths: "Mortes",
-      created: "Criado",
-      crafting: "Ofícios",
-      guild: "Guilda",
-      builds: "Builds",
-      gearTabs: "Templates de equipamento",
-      noBuild: "Sem build neste template.",
-      heal: "Cura",
-      util: "Utilitária",
-      elite: "Elite",
-      years: "anos",
-      days: "dias",
-      yes: "sim",
-      no: "não",
-      none: "nenhum",
-      killed: "já feito hoje",
-      open: "ainda não",
-      bossNote: "Os chefes desta lista que também estão no timer foram marcados como feitos hoje. O dia vira à meia-noite UTC. Abrir a conta de novo marca o que a API disser.",
-      buys: "Compras abertas",
-      sells: "Vendas abertas",
-      buyH: "Histórico de compras",
-      sellH: "Histórico de vendas",
-      qty: "qtd",
-      rank: "Rank",
-      wins: "Vitórias",
-      losses: "Derrotas",
-      games: "Partidas recentes",
-      team: "Time",
-      wvwGuild: "Guilda do WvW",
-      achievements: "Conquistas",
-      raids: "Raides",
-      dungeons: "Masmorras",
-      masteries: "Mestrias",
-      points: "Pontos de mestria",
-      done: "feitas",
-      roster: "Elenco",
-      motd: "Mensagem do dia",
-      log: "Histórico recente",
-      members: "membros",
-      visual: "visual",
-      loadNames: "Carregando os nomes…",
-      recipesNote: "Receitas entram só pela quantidade. A lista completa é grande demais para abrir de uma vez.",
-      commander: "Comandante",
-      fractal: "Fractal",
-      world: "Mundo",
-      access: "Conta",
-      ap: "AP do dia",
-      map: "AP do mês",
-      charsN: "Personagens",
-      home: "Início"
-    },
     en: {
       account: "Account",
       summary: "Summary",
@@ -195,6 +83,7 @@
       count: "showing",
       of: "of",
       refine: "Tighten the filter or search by name to see the rest.",
+      noCache: "This browser did not keep the cache. The page still works; each visit reads the account again.",
       level: "level",
       race: "Race",
       gender: "Gender",
@@ -261,7 +150,7 @@
       wizard: "Wizard's Vault",
       levelWord: "Level",
       raidNote: "These numbers are lifetime clears for the whole account. They are not today, and they are not this week. A raid shows how many of its encounters this account has ever defeated. 0/11 means this account has never defeated any of that raid's 11 encounters. A dungeon shows how many of its paths this account has ever finished. 0/4 means this account has never finished any of that dungeon's 4 paths.",
-      where: "Where to find?",
+      whereFind: "Where to find?",
       separateBags: "Separate bags",
       unifiedBags: "Unified bags",
       allBags: "All in one",
@@ -387,7 +276,19 @@
 
   const view = document.getElementById("account-view");
   const btn = document.getElementById("account");
-  let token = localStorage.getItem(TOKEN_KEY) || "";
+  function readStore(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw === null ? fallback : raw;
+    } catch (err) { return fallback; }
+  }
+  function writeStore(key, value) {
+    try { localStorage.setItem(key, value); return true; } catch (err) { return false; }
+  }
+  function dropStore(key) {
+    try { localStorage.removeItem(key); } catch (err) { /* modo privado */ }
+  }
+  let token = readStore(TOKEN_KEY, "") || "";
   let lang = "pt";
   let open = false;
   let snap = null;
@@ -410,8 +311,8 @@
   let materialCatJob = false;
   const BAG_COLS_MIN = 4;
   const BAG_COLS_MAX = 32;
-  let bagColsOn = localStorage.getItem("gw2-bag-cols-on") === "1";
-  let bagCols = Math.min(BAG_COLS_MAX, Math.max(BAG_COLS_MIN, Number(localStorage.getItem("gw2-bag-cols")) || 10));
+  let bagColsOn = readStore("gw2-bag-cols-on", "") === "1";
+  let bagCols = Math.min(BAG_COLS_MAX, Math.max(BAG_COLS_MIN, Number(readStore("gw2-bag-cols", "")) || 10));
   let skinSlot = "";
   let skinSets = "";
   let apiDown = false;
@@ -548,6 +449,7 @@
     }
     return dbp;
   }
+  let cacheFailed = false;
   function idbGet(key) {
     return db().then((store) => new Promise((resolve) => {
       const tx = store.transaction("kv", "readonly");
@@ -561,8 +463,9 @@
       const tx = store.transaction("kv", "readwrite");
       tx.objectStore("kv").put(value, key);
       tx.oncomplete = () => resolve(true);
-      tx.onerror = () => resolve(false);
-    })).catch(() => false);
+      tx.onerror = () => { cacheFailed = true; resolve(false); };
+      tx.onabort = () => { cacheFailed = true; resolve(false); };
+    })).catch(() => { cacheFailed = true; return false; });
   }
   function idbDel(key) {
     return db().then((store) => new Promise((resolve) => {
@@ -1196,7 +1099,7 @@
     if (!open || view.hidden || !snap) return;
     if (!loading) {
       const node = document.getElementById("acct-status");
-      if (node) node.textContent = loadError ? problemText() : (t().saved + " · " + when(snap.saved));
+      if (node) node.textContent = loadError ? problemText() : (cacheFailed ? t().noCache : (t().saved + " · " + when(snap.saved)));
     }
     renderBody();
     paintToolShelf();
@@ -1767,7 +1670,7 @@
     (row.infusions || []).forEach((id) => paintUpgrade(card, id));
     ensureItemText([row.id].concat(row.upgrades || []).concat(row.infusions || []), row);
     const found = el("div", "where-box");
-    found.append(el("h3", "", t().where));
+    found.append(el("h3", "", t().whereFind));
     const locs = el("div", "acct-locs");
     (row.locs || []).forEach((loc) => {
       const button = el("button", "", locText(loc));
@@ -2019,7 +1922,7 @@
     const next = Math.min(BAG_COLS_MAX, Math.max(BAG_COLS_MIN, bagCols + delta));
     if (next === bagCols) return false;
     bagCols = next;
-    localStorage.setItem("gw2-bag-cols", String(bagCols));
+    writeStore("gw2-bag-cols", String(bagCols));
     const label = view.querySelector(".bag-cols strong");
     if (label) label.textContent = String(bagCols);
     view.querySelectorAll(".bag-step").forEach((button) => {
@@ -2193,7 +2096,7 @@
       const cols = el("div", "bag-cols");
       cols.append(chip("Columns", bagColsOn, () => {
         bagColsOn = !bagColsOn;
-        localStorage.setItem("gw2-bag-cols-on", bagColsOn ? "1" : "0");
+        writeStore("gw2-bag-cols-on", bagColsOn ? "1" : "0");
         renderBody();
       }));
       const down = el("button", "bag-step", "Down");
@@ -2307,7 +2210,7 @@
     return locText(loc);
   }
   function loadTrack() {
-    try { return JSON.parse(localStorage.getItem("gw2-tool-track") || "{}"); }
+    try { return JSON.parse(readStore("gw2-tool-track", "{}") || "{}"); }
     catch (error) { return {}; }
   }
   function toolAtShared(row) {
@@ -2403,7 +2306,7 @@
     clearTrack.type = "button";
     clearTrack.disabled = !["sickle", "axe", "pick"].some((kind) => track[kind]);
     clearTrack.addEventListener("click", () => {
-      localStorage.removeItem("gw2-tool-track");
+      dropStore("gw2-tool-track");
       toolPick = "";
       renderBody();
       paintToolShelf();
@@ -2435,7 +2338,7 @@
             event.stopImmediatePropagation();
             const next = loadTrack();
             next[toolPick] = row.id;
-            localStorage.setItem("gw2-tool-track", JSON.stringify(next));
+            writeStore("gw2-tool-track", JSON.stringify(next));
             toolPick = "";
             renderBody();
             paintToolShelf();
@@ -4405,11 +4308,11 @@
       try {
         await api("/v2/tokeninfo");
       } catch (error) {
-        token = localStorage.getItem(TOKEN_KEY) || "";
+        token = readStore(TOKEN_KEY, "") || "";
         box.append(el("p", "acct-warn", error.status === 401 ? L.keyBad : L.keyNet));
         return;
       }
-      localStorage.setItem(TOKEN_KEY, next);
+      writeStore(TOKEN_KEY, next);
       token = next;
       input.value = "";
       await pull();
@@ -4512,7 +4415,22 @@
     if (open) render();
   }
   function render() {
-    lang = localStorage.getItem("gw2-lang") === "en" ? "en" : "pt";
+    try {
+      renderPanel();
+    } catch (err) {
+      if (!open) return;
+      view.className = "";
+      view.replaceChildren();
+      const box = el("div", "acct-card");
+      box.append(el("h3", "", t().account), el("p", "acct-warn", problemText()));
+      const again = el("button", "tool", t().refresh);
+      again.type = "button";
+      again.addEventListener("click", () => { try { render(); } catch (err2) { /* a mensagem acima já explica */ } });
+      box.append(again);
+      view.append(box);
+    }
+  }
+  function renderPanel() {
     paintBtn();
     if (!open) return;
     if (!token) { renderForm(); return; }
@@ -4535,7 +4453,10 @@
     titles.append(el("h2", "", (snap && snap.account && snap.account.name) || L.account));
     const state = el("p");
     state.id = "acct-status";
-    state.textContent = loading ? (status || L.updating) : (loadError ? problemText() : (snap ? L.saved + " · " + when(snap.saved) : ""));
+    const note = cacheFailed
+      ? (loadError ? problemText() : t().noCache)
+      : (snap ? L.saved + " · " + when(snap.saved) : "");
+    state.textContent = loading ? (status || L.updating) : (loadError ? problemText() : note);
     titles.append(state);
     head.append(titles);
     const actions = el("div", "acct-actions");
@@ -4578,8 +4499,8 @@
       yes.type = "button";
       yes.addEventListener("click", async () => {
         const old = token ? hash(token) : "";
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem("gw2-tool-track");
+        dropStore(TOKEN_KEY);
+        dropStore("gw2-tool-track");
         token = "";
         paintSync();
         snap = null;
@@ -4611,7 +4532,6 @@
     forgetAsk = false;
     paintBtn();
     if (!open) return;
-    lang = localStorage.getItem("gw2-lang") === "en" ? "en" : "pt";
     if (!token) { renderForm(); return; }
     await loadCatalog();
     if (!snap) {
@@ -4733,15 +4653,26 @@
     if (!snap) pull();
     else if (now - saved > 10 * 60 * 1000) refreshLive();
     else if (now - bossesAt > 3600000) refreshBosses();
-    setInterval(() => { if (token && !loading) refreshBosses(); }, 3600000);
-    setInterval(() => { if (token && !loading) refreshLive(); }, 10 * 60 * 1000);
-    setInterval(() => { if (token && !loading) refreshTools(); }, 5 * 60 * 1000);
-    setInterval(paintRefreshAll, 1000);
+    setInterval(() => {
+      if (!token || loading || document.hidden) return;
+      refreshBosses();
+    }, 3600000);
+    setInterval(() => {
+      if (!token || loading || document.hidden) return;
+      refreshLive();
+    }, 10 * 60 * 1000);
+    setInterval(() => {
+      if (!token || loading || document.hidden) return;
+      refreshTools();
+    }, 5 * 60 * 1000);
+    setInterval(() => {
+      if (document.hidden) return;
+      paintRefreshAll();
+    }, 1000);
   }
 
   window.GW2Account = {
     syncLang() {
-      lang = localStorage.getItem("gw2-lang") === "en" ? "en" : "pt";
       paintBtn();
       if (open) render();
     }

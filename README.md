@@ -281,21 +281,26 @@ Nothing from the timer is sent to a server beyond the page itself. Favorites, al
 | File | Role |
 | --- | --- |
 | `docker-compose.yml` | Starts Nginx and publishes port 8094 |
-| `nginx.conf` | Serves the page and asks the browser not to keep a stale copy |
+| `nginx.conf` | Serves the page, compresses the text files, and sends the security headers |
 | `start.ps1`, `start.sh` | Shortcut for `docker compose up -d` |
 | `VERSION` | This version number: 1.0.1 |
 | `README.md` | This documentation |
 | `README.pt-BR.md` | The same documentation in Portuguese |
 | `site/` | HTML, CSS, JavaScript, and the schedule |
 | `site/index.html` | Page shell |
+| `site/version.js` | The only place the version number is written for the page |
 | `site/app.js` | Timer, filters, favorites, alerts, and sound |
 | `site/app.css` | Timer look and the account status dot |
 | `site/data.js` | Fixed times and teleport codes |
-| `site/account.js` | Account panel |
+| `site/account.js` | Account panel, loaded only when someone opens Account |
 | `site/account.css` | Account panel look |
 | `site/assets/` | Page icon, shared-inventory icon, and the sounds |
 
-The image used is `nginx:1.27-alpine`. It is not built in this repository. Compose only mounts `site` at `/usr/share/nginx/html` and `nginx.conf` at `/etc/nginx/conf.d/default.conf`, both read-only.
+The image used is `nginx:1.30-alpine`. It is not built in this repository. Compose only mounts `site` at `/usr/share/nginx/html` and `nginx.conf` at `/etc/nginx/conf.d/default.conf`, both read-only.
+
+`nginx.conf` compresses text files, sends `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and a `Content-Security-Policy`, and answers a missing file with a real 404 instead of the page. The policy allows the page's own files, the API at `api.guildwars2.com`, item icons at `render.guildwars2.com`, and the worker that keeps the clock ticking in a background tab.
+
+`site/account.js` is about 200 KB and only someone who opens Account downloads it. A browser that already has a key saved loads it at start, because the tools in the top bar come from it.
 
 ## When something does not open
 

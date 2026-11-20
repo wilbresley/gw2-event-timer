@@ -281,21 +281,26 @@ Nada do timer é enviado a um servidor além da própria página. Favoritos, ale
 | Arquivo | Função |
 | --- | --- |
 | `docker-compose.yml` | Sobe o Nginx e publica a porta 8094 |
-| `nginx.conf` | Entrega a página e pede ao navegador para não guardar uma cópia velha |
+| `nginx.conf` | Entrega a página, comprime os arquivos de texto e manda os cabeçalhos de segurança |
 | `start.ps1`, `start.sh` | Atalho para `docker compose up -d` |
 | `VERSION` | Número desta versão: 1.0.1 |
 | `README.md` | Documentação em inglês |
 | `README.pt-BR.md` | Esta documentação |
 | `site/` | HTML, CSS, JavaScript e a agenda |
 | `site/index.html` | Casca da página |
+| `site/version.js` | O único lugar onde o número da versão está escrito para a página |
 | `site/app.js` | Timer, filtros, favoritos, alertas e som |
 | `site/app.css` | Visual do timer e a bolinha de estado da conta |
 | `site/data.js` | Horários fixos e códigos de teleporte |
-| `site/account.js` | Painel da conta |
+| `site/account.js` | Painel da conta, carregado só quando alguém abre Account |
 | `site/account.css` | Visual do painel da conta |
 | `site/assets/` | Ícone da página, ícone do inventário compartilhado e os sons |
 
-A imagem usada é `nginx:1.27-alpine`. Ela não é construída neste repositório. O Compose só monta `site` em `/usr/share/nginx/html` e `nginx.conf` em `/etc/nginx/conf.d/default.conf`, os dois só para leitura.
+A imagem usada é `nginx:1.30-alpine`. Ela não é construída neste repositório. O Compose só monta `site` em `/usr/share/nginx/html` e `nginx.conf` em `/etc/nginx/conf.d/default.conf`, os dois só para leitura.
+
+O `nginx.conf` comprime os arquivos de texto, manda `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` e um `Content-Security-Policy`, e responde arquivo inexistente com 404 de verdade em vez da página. A política libera os arquivos da própria página, a API em `api.guildwars2.com`, os ícones dos itens em `render.guildwars2.com` e o worker que mantém o relógio andando em aba de segundo plano.
+
+O `site/account.js` tem uns 200 KB e só é baixado por quem abre Account. Um navegador que já tem uma chave salva carrega ele na abertura, porque as ferramentas do topo vêm dele.
 
 ## Quando algo não abre
 
