@@ -6,7 +6,7 @@ Versão 1.0.1.
 
 Página de horários de chefes e metas do Guild Wars 2, com um painel opcional da conta. Abre no navegador. O relógio é o do aparelho de quem está olhando. Não tem banco de dados, não tem login do site e não tem etapa de compilação.
 
-O container só entrega os arquivos da pasta `site`. Depois que esses arquivos carregam, a página é uma ferramenta local no computador dessa pessoa. Ela não envia eventos, favoritos, alertas nem a chave da API para a máquina que entregou a página, e não liga de volta para lugar nenhum deste projeto.
+O host só entrega os arquivos da pasta `site`. Depois que esses arquivos carregam, a página é uma ferramenta local no computador dessa pessoa. Ela não envia eventos, favoritos, alertas nem a chave da API para a máquina que entregou a página, e não liga de volta para lugar nenhum deste projeto. O host que entrega os arquivos, seja o seu servidor ou o Cloudflare Pages, vê o IP de quem visita, como qualquer servidor web vê.
 
 O timer de eventos lê `site/data.js` e guarda favoritos, alertas e concluídos no navegador. Ele mesmo não faz nenhum pedido de rede. O painel da conta, só se alguém colar uma chave, chama `https://api.guildwars2.com` direto desse navegador. Os ícones dos itens e os links da wiki abertos no painel também vêm da ArenaNet, não deste projeto. O mesmo limite está escrito no topo de `site/index.html`, `site/app.js` e `site/account.js`.
 
@@ -117,6 +117,26 @@ docker compose up -d
 ```
 
 No Windows, no PowerShell, o `mv` também renomeia a pasta.
+
+## Colocar no Cloudflare Pages
+
+A página é estática: não tem banco de dados, não tem etapa de compilação e não tem código de servidor. Por isso ela pode ser servida por um host estático em vez de uma máquina em casa, e o timer continua funcionando com o seu computador desligado.
+
+O Cloudflare Pages é o host recomendado aqui, porque o domínio já usa Cloudflare e porque o Pages respeita o arquivo `_headers`. O GitHub Pages não: ele ignora o `_headers` e não oferece nenhuma forma de definir cabeçalhos HTTP, então o site perderia a política de segurança lá.
+
+1. No painel da Cloudflare, abra **Workers & Pages**, depois **Create**, depois **Pages**, depois **Connect to Git**.
+2. Escolha o repositório `gw2-event-timer` e o branch `main`.
+3. Framework preset: **None**. Build command: deixe vazio. Build output directory: `site`.
+4. Salve e publique. A Cloudflare mostra um endereço tipo `gw2-event-timer.pages.dev`.
+5. Quando estiver bom, abra a aba **Custom domains** do projeto e adicione o domínio, por exemplo `gw2.bresley.win`. A Cloudflare cria o registro de DNS e o certificado.
+
+Publicar passa a ser um `git push` no `main`. Nada além disso.
+
+O `site/_headers` carrega a política de segurança, as regras de tipo de conteúdo e o cache. Ele é o equivalente no Pages dos cabeçalhos do `nginx.conf`, e os dois ficam no repositório: um para o Pages, outro para o container.
+
+Os arquivos do Docker continuam também. Rodar o container na sua máquina ou num servidor continua funcionando, e é o caminho para usar a página offline ou sem um terceiro na frente.
+
+**O que muda para quem visita:** no Pages, a Cloudflare entrega os arquivos em vez da sua máquina, então a Cloudflare vê o IP de quem visita. No caminho do container, só o seu servidor vê. A página continua não fazendo nenhum pedido por conta própria, e o painel da conta continua falando só com `api.guildwars2.com`.
 
 ## Subir num servidor Debian
 
@@ -294,6 +314,7 @@ Nada do timer é enviado a um servidor além da própria página. Favoritos, ale
 | `site/data.js` | Horários fixos e códigos de teleporte |
 | `site/account.js` | Painel da conta, carregado só quando alguém abre Account |
 | `site/account.css` | Visual do painel da conta |
+| `site/_headers` | Cabeçalhos de segurança e cache, lidos pelo Cloudflare Pages |
 | `site/assets/` | Ícone da página, ícone do inventário compartilhado e os sons |
 
 A imagem usada é `nginx:1.30-alpine`. Ela não é construída neste repositório. O Compose só monta `site` em `/usr/share/nginx/html` e `nginx.conf` em `/etc/nginx/conf.d/default.conf`, os dois só para leitura.

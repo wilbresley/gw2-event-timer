@@ -1,0 +1,18 @@
+# Cloudflare Pages reads this file and applies the headers below.
+# It is not served as a file. GitHub Pages ignores it.
+#
+# The paths and files come from the page itself: nothing here loads a third
+# party script. The only outside hosts allowed are the ArenaNet API and the
+# item icons, which the account panel and the item cards use.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://render.guildwars2.com; media-src 'self'; connect-src 'self' https://api.guildwars2.com; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Images, sounds, and styles carry a ?v= in the page. Bump that number when
+# the file changes, and the browser picks the new one up on the next visit.
+/assets/*
+  Cache-Control: public, max-age=86400

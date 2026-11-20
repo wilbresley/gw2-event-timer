@@ -6,7 +6,7 @@ Version 1.0.1.
 
 A browser page for Guild Wars 2 world bosses and meta events, with an optional account panel. The clock is the clock of the device looking at the page. There is no database, no site login, and no build step.
 
-The container only serves the files in `site`. After those files have loaded, the page is a local tool on that person's computer. It does not send events, favorites, alerts, or the API key to the machine that delivered the page, and it does not phone home.
+The host only serves the files in `site`. After those files have loaded, the page is a local tool on that person's computer. It does not send events, favorites, alerts, or the API key to the machine that delivered the page, and it does not phone home. The host that delivers the files, your own server or Cloudflare Pages, does see the visitor's IP address, the same as any web server does.
 
 The event timer reads `site/data.js` and saves favorites, alerts, and completed marks in the browser. It makes no network request of its own. The account panel, only if someone pastes a key, calls `https://api.guildwars2.com` directly from that browser. Item icons and wiki links opened from the panel also come from ArenaNet, not from this project. The same boundary is written at the top of `site/index.html`, `site/app.js`, and `site/account.js`.
 
@@ -117,6 +117,26 @@ docker compose up -d
 ```
 
 On Windows, in PowerShell, `mv` renames the folder too.
+
+## Put it on Cloudflare Pages
+
+The page is static: no database, no build step, no server code. That means it can be served by a static host instead of a machine at home, and the timer keeps working while your computer is off.
+
+Cloudflare Pages is the recommended host here, because the domain already uses Cloudflare and Pages honours a `_headers` file. GitHub Pages does not: it ignores `_headers` and offers no way to set HTTP headers, so the site would lose its security policy there.
+
+1. In the Cloudflare dashboard, open **Workers & Pages**, then **Create**, then **Pages**, then **Connect to Git**.
+2. Pick the `gw2-event-timer` repository and the `main` branch.
+3. Framework preset: **None**. Build command: leave empty. Build output directory: `site`.
+4. Save and deploy. Cloudflare prints an address like `gw2-event-timer.pages.dev`.
+5. When it looks right, open the **Custom domains** tab of the project and add the domain, for example `gw2.bresley.win`. Cloudflare creates the DNS record and the certificate.
+
+Publishing is then a `git push` on `main`. Nothing else.
+
+`site/_headers` carries the security policy, the content type rules, and the caching. It is the Pages equivalent of the headers in `nginx.conf`, and both stay in the repository: one for Pages, one for the container.
+
+The Docker files stay too. Running the container locally or on a server still works, and that is the path to use when you want the page offline or without a third party in front.
+
+**What changes for whoever visits:** on Pages, Cloudflare delivers the files instead of your machine, so Cloudflare sees the visitor's IP address. On the container path, only your own server does. The page itself still makes no request of its own, and the account panel still talks only to `api.guildwars2.com`.
 
 ## Run it on a Debian server
 
@@ -294,6 +314,7 @@ Nothing from the timer is sent to a server beyond the page itself. Favorites, al
 | `site/data.js` | Fixed times and teleport codes |
 | `site/account.js` | Account panel, loaded only when someone opens Account |
 | `site/account.css` | Account panel look |
+| `site/_headers` | Security headers and caching, read by Cloudflare Pages |
 | `site/assets/` | Page icon, shared-inventory icon, and the sounds |
 
 The image used is `nginx:1.30-alpine`. It is not built in this repository. Compose only mounts `site` at `/usr/share/nginx/html` and `nginx.conf` at `/etc/nginx/conf.d/default.conf`, both read-only.
