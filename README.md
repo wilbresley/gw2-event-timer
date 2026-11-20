@@ -130,7 +130,9 @@ Cloudflare Pages is the recommended host here, because the domain already uses C
 2. Pick the `gw2-event-timer` repository and the `main` branch.
 3. Framework preset: **None**. Build command: `exit 0`. Build output directory: `site`.
 4. Save and deploy. Cloudflare prints an address like `PROJECT-NAME.pages.dev`.
-5. When it looks right, open the **Custom domains** tab of the project and add the domain, for example `timer.example.com`. Cloudflare creates the DNS record and the certificate.
+5. When it looks right, open the **Custom domains** tab of the project and add the domain.
+
+This project's public copy is served at **https://gw2.bresley.win/**. Open it to see the page working without cloning anything.
 
 Publishing is then a `git push` on `main`. Nothing else.
 

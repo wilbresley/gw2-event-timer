@@ -2,16 +2,16 @@
 
 Este arquivo é para qualquer pessoa ou IA que altere o projeto mais tarde. Leia antes de editar. Ele registra decisões que são fáceis de desfazer por acidente, porque o código não explica sozinho por que elas estão ali.
 
-Nada de dado pessoal entra neste repositório: sem endereço de casa, sem IP privado, sem chave de API e sem domínio real do mantenedor. Os exemplos usam `example.com` e `192.168.0.20` de propósito. Mantenha assim. Os arquivos de documentação e as mensagens de commit são em português; só o texto da interface da página é em inglês.
+Nada de dado pessoal entra neste repositório: sem endereço de casa, sem IP privado, sem chave de API e sem nome de arquivo de pessoa. Os exemplos de rede usam `example.com` e `192.168.0.20` de propósito. Mantenha assim. Os arquivos de documentação e as mensagens de commit são em português; só o texto da interface da página é em inglês.
 
-A única identificação pública é o nome de conta do jogo e a chave Pix, que estão no rodapé e na janela do Pix de propósito: são o crédito do projeto e o jeito de receber presente. Não acrescente nada além disso, e não troque esses dois por dados de outra pessoa.
+Três coisas aparecem de propósito e são escolha do mantenedor, não descuido: o **domínio público** do projeto, o **nome da conta do jogo** com a chave Pix no rodapé, e a janela do Pix. O domínio serve para qualquer pessoa abrir a página sem compilar nada, e a conta é como o projeto recebe presente. Não acrescente nada além disso.
 
 ## Onde a página roda
 
 A mesma pasta `site` é servida de dois lugares, e os dois precisam continuar funcionando:
 
-1. **Cloudflare Pages** serve o site público. Um push no branch `main` publica em cerca de um minuto. É o caminho que os visitantes usam.
-2. **Um container** (`nginx:1.30-alpine`, veja `docker-compose.yml`) serve a mesma pasta na porta 8094. É o caminho para usar a página offline, numa rede local, ou atrás de um proxy que o mantenedor controle. Não é o caminho público.
+1. **Cloudflare Pages** serve o site público em `https://gw2.bresley.win/`. Um push no branch `main` publica em cerca de um minuto. É o caminho que os visitantes usam.
+2. **Um container** (`nginx:1.30-alpine`, veja `docker-compose.yml`) serve a mesma pasta na porta 8094. Ele fica **parado** na maior parte do tempo e só sobe para testar uma mudança antes de publicar, ou para uso offline. Não é o caminho público.
 
 Nada na página sabe qual dos dois está servindo. Todo caminho no HTML, no CSS e no JavaScript é relativo. Não introduza caminho absoluto, nome de host fixo ou número de porta: isso quebraria um dos dois.
 

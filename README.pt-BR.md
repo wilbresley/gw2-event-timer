@@ -130,7 +130,9 @@ O Cloudflare Pages é o host recomendado aqui, porque o domínio já usa Cloudfl
 2. Escolha o repositório `gw2-event-timer` e o branch `main`.
 3. Framework preset: **None**. Build command: `exit 0`. Build output directory: `site`.
 4. Salve e publique. A Cloudflare mostra um endereço tipo `NOME-DO-PROJETO.pages.dev`.
-5. Quando estiver bom, abra a aba **Custom domains** do projeto e adicione o domínio, por exemplo `timer.example.com`. A Cloudflare cria o registro de DNS e o certificado.
+5. Quando estiver bom, abra a aba **Custom domains** do projeto e adicione o domínio.
+
+A cópia pública deste projeto está em **https://gw2.bresley.win/**. Abra para ver a página funcionando sem clonar nada.
 
 Publicar passa a ser um `git push` no `main`. Nada além disso.
 
