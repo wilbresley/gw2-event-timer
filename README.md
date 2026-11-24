@@ -2,7 +2,7 @@
 
 [![Português](https://img.shields.io/badge/Leia%20em-Portugu%C3%AAs-2ea44f?style=for-the-badge)](README.pt-BR.md)
 
-Version 1.1.0.
+Version 1.1.1.
 
 A browser page for Guild Wars 2 world bosses and meta events, with an optional account panel. The clock is the clock of the device looking at the page. There is no database, no site login, and no build step.
 
@@ -12,7 +12,7 @@ The event timer reads `site/data.js` and saves favorites, alerts, and completed 
 
 Copying the `site` folder is enough to keep using the timer with no server at all: open `index.html` from that folder, or serve the folder with any static file server. A browser "save complete page" is less reliable, because browsers rewrite paths and can leave a file out. The account panel still needs that person's internet connection to ArenaNet. Removing the original host does not stop a copy that already has the files.
 
-Anyone can clone and use this project. If you reuse it, publish a fork, or take it as the base of another tool, please mention this project as the inspiration or as the fork it came from.
+Anyone can clone and use this project. It is under the MIT license; see `LICENSE`. If you reuse it, publish a fork, or take it as the base of another tool, please mention this project as the inspiration or as the fork it came from; that mention is a courtesy, not an extra condition of the license.
 
 If you are going to change the code, read `AGENTS.md` first. It records where the page is hosted, the two header files that must stay in sync, the `?v=` rule, and the decisions that look wrong but are deliberate.
 
@@ -263,6 +263,8 @@ The window width changes how many columns the list uses: 1 up to 1199 px, 2 from
 
 Requests go from that person's browser straight to `https://api.guildwars2.com`. This container does not proxy those calls and does not keep the key. Icons from `render.guildwars2.com` do not count toward the API request budget.
 
+The key travels in the `access_token` query string, not in an `Authorization` header: ArenaNet's API does not allow that header from a browser (the CORS preflight fails). The page never puts the key in the address bar or in browser history; it stays in `localStorage` and in the API request.
+
 The menus, in this order, are Summary, Legendary, Ascended, Inventory, Characters, Tools, Bosses, Wallet, Unlocks, Auction House, PvP, WvW, Progress, and Guilds. The panel shows what the API returns and redraws the open menu when a read finishes. A page reload is not required.
 
 To the left of **Forget Account** there are four buttons:
@@ -307,7 +309,8 @@ Nothing from the timer is sent to a server beyond the page itself. Favorites, al
 | `docker-compose.yml` | Starts Nginx and publishes port 8094 |
 | `nginx.conf` | Serves the page, compresses the text files, and sends the security headers |
 | `start.ps1`, `start.sh` | Shortcut for `docker compose up -d` |
-| `VERSION` | This version number: 1.1.0 |
+| `VERSION` | This version number: 1.1.1 |
+| `LICENSE` | MIT license |
 | `README.md` | This documentation |
 | `README.pt-BR.md` | The same documentation in Portuguese |
 | `AGENTS.md` | Notes for whoever changes the code later, including an AI assistant |
@@ -325,7 +328,7 @@ Nothing from the timer is sent to a server beyond the page itself. Favorites, al
 
 The image used is `nginx:1.30-alpine`. It is not built in this repository. Compose only mounts `site` at `/usr/share/nginx/html` and `nginx.conf` at `/etc/nginx/conf.d/default.conf`, both read-only.
 
-`nginx.conf` compresses text files, sends `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and a `Content-Security-Policy`, and answers a missing file with a real 404 instead of the page. The policy allows the page's own files, the API at `api.guildwars2.com`, item icons at `render.guildwars2.com`, and the worker that keeps the clock ticking in a background tab.
+`nginx.conf` compresses text files, sends `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`, and a `Content-Security-Policy`, and answers a missing file with a real 404 instead of the page. The policy allows the page's own files, the API at `api.guildwars2.com`, item icons at `render.guildwars2.com`, and the worker that keeps the clock ticking in a background tab.
 
 `site/account.js` is about 165 KB and only someone who opens Account downloads it. A browser that already has a key saved loads it at start, because the tools in the top bar come from it.
 
