@@ -2,7 +2,7 @@
 
 [![English](https://img.shields.io/badge/Read%20in-English-1f6feb?style=for-the-badge)](README.md)
 
-Versão 1.1.1.
+Versão 1.1.2.
 
 Página de horários de chefes e metas do Guild Wars 2, com um painel opcional da conta. Abre no navegador. O relógio é o do aparelho de quem está olhando. Não tem banco de dados, não tem login do site e não tem etapa de compilação.
 
@@ -32,6 +32,7 @@ Se o timer ajudou, dá para mandar um mimo no Guild Wars 2 para a conta **Bresle
 
 - [Git](https://git-scm.com/downloads)
 - [Docker Desktop](https://docs.docker.com/get-docker/) no Windows ou no macOS, ou Docker Engine mais o plugin Compose no Linux
+- [Node.js](https://nodejs.org/) 24 ou mais novo só para rodar os testes automatizados; o site em si não tem etapa de build
 
 O Docker precisa estar aberto antes dos comandos abaixo. No Windows, abra o Docker Desktop e espere ele ficar verde.
 
@@ -138,7 +139,7 @@ Publicar passa a ser um `git push` no `main`. Nada além disso.
 
 O `site/_headers` carrega a política de segurança, as regras de tipo de conteúdo e o cache. Ele é o equivalente no Pages dos cabeçalhos do `nginx.conf`, e os dois ficam no repositório: um para o Pages, outro para o container.
 
-Os arquivos do Docker continuam também. Rodar o container na sua máquina ou num servidor continua funcionando, e é o caminho para usar a página offline ou sem um terceiro na frente.
+Os arquivos do Docker continuam também. Rodar o container na sua máquina ou num servidor continua funcionando, e é a opção de self-host/offline para quem quiser a página sem um terceiro na frente. Não é um segundo deploy público; a cópia pública é a do Pages.
 
 **O que muda para quem visita:** no Pages, a Cloudflare entrega os arquivos em vez da sua máquina, então a Cloudflare vê o IP de quem visita. No caminho do container, só o seu servidor vê. A página continua não fazendo nenhum pedido por conta própria, e o painel da conta continua falando só com `api.guildwars2.com`.
 
@@ -309,8 +310,12 @@ Nada do timer é enviado a um servidor além da própria página. Favoritos, ale
 | `docker-compose.yml` | Sobe o Nginx e publica a porta 8094 |
 | `nginx.conf` | Entrega a página, comprime os arquivos de texto e manda os cabeçalhos de segurança |
 | `start.ps1`, `start.sh` | Atalho para `docker compose up -d` |
-| `VERSION` | Número desta versão: 1.1.1 |
+| `VERSION` | Número desta versão: 1.1.2 |
 | `LICENSE` | Licença MIT |
+| `package.json`, `package-lock.json` | Ferramentas de teste, só para desenvolvimento; não entram no build do Pages |
+| `tests/` | Testes unitários/estáticos e E2E com Playwright |
+| `.github/workflows/tests.yml` | Workflow de testes no GitHub Actions |
+| `SECURITY.md` | Escopo e canal de reporte de segurança |
 | `README.md` | Documentação em inglês |
 | `README.pt-BR.md` | Esta documentação |
 | `AGENTS.md` | Notas para quem mexer no código depois, inclusive uma IA |
@@ -324,17 +329,33 @@ Nada do timer é enviado a um servidor além da própria página. Favoritos, ale
 | `site/account.css` | Visual do painel da conta |
 | `site/_headers` | Cabeçalhos de segurança e cache, lidos pelo Cloudflare Pages |
 | `site/404.html` | Mostrado num endereço que não existe. Sem ele, o Pages responde qualquer caminho inexistente com a página inicial |
+| `site/404.css` | Estilo do 404, para a CSP ficar em `style-src 'self'` |
 | `site/assets/` | Ícone da página, ícone do inventário compartilhado e os sons |
 
 A imagem usada é `nginx:1.30-alpine`. Ela não é construída neste repositório. O Compose só monta `site` em `/usr/share/nginx/html` e `nginx.conf` em `/etc/nginx/conf.d/default.conf`, os dois só para leitura.
 
-O `nginx.conf` comprime os arquivos de texto, manda `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security` e um `Content-Security-Policy`, e responde arquivo inexistente com 404 de verdade em vez da página. A política libera os arquivos da própria página, a API em `api.guildwars2.com`, os ícones dos itens em `render.guildwars2.com` e o worker que mantém o relógio andando em aba de segundo plano.
+O `nginx.conf` comprime os arquivos de texto, manda `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`, `X-Frame-Options` e um `Content-Security-Policy`, e responde arquivo inexistente com 404 de verdade em vez da página. A política libera os arquivos da própria página, a API em `api.guildwars2.com`, os ícones dos itens em `render.guildwars2.com` e o worker que mantém o relógio andando em aba de segundo plano.
 
 O `site/account.js` tem uns 165 KB e só é baixado por quem abre Account. Um navegador que já tem uma chave salva carrega ele na abertura, porque as ferramentas do topo vêm dele.
 
+## Testes
+
+O site não tem etapa de build. Os testes são só de desenvolvimento e nunca entram no build do Pages:
+
+```bash
+npm ci
+npx playwright install chromium
+npm test
+npm run test:e2e
+```
+
+No Windows, se o PowerShell bloquear `npm.ps1`, use `npm.cmd` e `npx.cmd`. O E2E usa um servidor estático local e respostas simuladas da API; ele nunca usa uma chave real nem a API de verdade. O container nginx de self-host não entra na suíte; a paridade de headers entre `site/_headers` e `nginx.conf` é conferida estaticamente.
+
+Os mesmos comandos rodam em `.github/workflows/tests.yml` em push e pull request. O deploy do Cloudflare Pages continua acontecendo no push; para os testes bloquearem o `main`, ative branch protection exigindo o workflow `tests`.
+
 ## Quando algo não abre
 
-**A página não carrega.** Confira se o Docker está aberto e se o container está de pé:
+**A página não carrega.** No site público do Pages, confira a conexão; o Docker não entra. Numa cópia local ou self-host, confira se o Docker está aberto e se o container está de pé:
 
 ```bash
 docker compose ps
@@ -349,4 +370,4 @@ docker compose logs
 
 **A chave foi colada e nada muda.** A chave precisa das permissões da conta que o painel lê, como account, characters, builds, inventories e unlocks. Uma chave sem permissão volta vazia ou com erro naquela seção. **Forget Account** limpa a chave errada para colar outra.
 
-**Atualizei os arquivos e o navegador mostra a versão velha.** Recarregue a página. O Nginx manda `Cache-Control: no-cache`. Se ainda assim parecer antigo, faça um recarregamento forçado do navegador.
+**Atualizei os arquivos e o navegador mostra a versão velha.** Recarregue a página. O host revalida a página (o Pages manda `max-age=0, must-revalidate`; o container manda `no-cache`). Se ainda assim parecer antigo, faça um recarregamento forçado do navegador.

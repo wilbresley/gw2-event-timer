@@ -6,8 +6,9 @@
   renamed file behind an HTML page. The container path uses the try_files rule
   in nginx.conf for the same reason.
 
-  Keep this file self-contained: no script, no external css, so it renders even
-  when the rest of the site failed to deploy.
+  The page has no script. It uses one same-origin stylesheet, /404.css, so the
+  CSP can stay style-src 'self' (no unsafe-inline). If the stylesheet is
+  missing, the text still renders readable.
 -->
 <html lang="en">
 <head>
@@ -16,37 +17,7 @@
   <meta name="theme-color" content="#0c0f14">
   <meta name="robots" content="noindex">
   <title>Page not found · Gw2 Event Timer</title>
-  <style>
-    :root { color-scheme: dark; }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.6rem;
-      padding: 1.5rem;
-      background: #0c0f14;
-      color: #f3f5f8;
-      font-family: "Segoe UI", system-ui, sans-serif;
-      text-align: center;
-    }
-    h1 { margin: 0; font-size: clamp(1.4rem, 4vw, 1.9rem); }
-    p { margin: 0; max-width: 30rem; color: #8e98ab; line-height: 1.5; }
-    a {
-      margin-top: 0.6rem;
-      padding: 0.5rem 1rem;
-      border: 1px solid #2a3142;
-      border-radius: 0.6rem;
-      background: #171c26;
-      color: #f3f5f8;
-      font-size: 0.95rem;
-      text-decoration: none;
-    }
-    a:hover, a:focus-visible { border-color: #d7b36a; }
-  </style>
+  <link rel="stylesheet" href="/404.css">
 </head>
 <body>
   <h1>Page not found</h1>

@@ -4,3 +4,8 @@ Desktop.ini
 *.log
 docs/conversa-ia.md
 .codegraph/
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+.playwright/

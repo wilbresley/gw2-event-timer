@@ -8,9 +8,10 @@
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), serial=(), hid=(), bluetooth=(), fullscreen=()
   Strict-Transport-Security: max-age=31536000
-  Content-Security-Policy: default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://render.guildwars2.com; media-src 'self'; connect-src 'self' https://api.guildwars2.com; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+  X-Frame-Options: DENY
+  Content-Security-Policy: default-src 'self'; script-src 'self' blob:; style-src 'self'; img-src 'self' data: https://render.guildwars2.com; media-src 'self'; connect-src 'self' https://api.guildwars2.com; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
   Cache-Control: public, max-age=0, must-revalidate
 
 # Images, sounds, and styles carry a ?v= in the page. Bump that number when

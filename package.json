@@ -1,0 +1,14 @@
+{
+  "name": "gw2-event-timer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/unit/data.test.mjs tests/unit/static.test.mjs",
+    "test:e2e": "playwright test",
+    "test:all": "npm test && npm run test:e2e",
+    "serve": "node tests/serve.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1"
+  }
+}

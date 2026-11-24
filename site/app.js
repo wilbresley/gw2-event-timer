@@ -1359,7 +1359,7 @@
     }
     accountLoad = new Promise((resolve) => {
       const script = document.createElement("script");
-      script.src = "account.js?v=39";
+      script.src = "account.js?v=40";
       script.async = true;
       script.onload = () => {
         $("account").dataset.ready = "1";

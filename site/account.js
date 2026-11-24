@@ -161,63 +161,63 @@
   };
 
   const WORD = {
-    Guardian: ["Guardião", "Guardian"],
-    Revenant: ["Revenante", "Revenant"],
-    Warrior: ["Guerreiro", "Warrior"],
-    Engineer: ["Engenheiro", "Engineer"],
-    Ranger: ["Guardião da Natureza", "Ranger"],
-    Thief: ["Ladrão", "Thief"],
-    Elementalist: ["Elementalista", "Elementalist"],
-    Mesmer: ["Mesmer", "Mesmer"],
-    Necromancer: ["Necromante", "Necromancer"],
-    Human: ["Humano", "Human"],
-    Charr: ["Charr", "Charr"],
-    Norn: ["Norn", "Norn"],
-    Asura: ["Asura", "Asura"],
-    Sylvari: ["Sylvari", "Sylvari"],
-    Male: ["Homem", "Male"],
-    Female: ["Mulher", "Female"],
-    Weaponsmith: ["Armeiro", "Weaponsmith"],
-    Armorsmith: ["Armoreiro", "Armorsmith"],
-    Artificer: ["Artífice", "Artificer"],
-    Chef: ["Cozinheiro", "Chef"],
-    Huntsman: ["Caçador", "Huntsman"],
-    Jeweler: ["Joalheiro", "Jeweler"],
-    Leatherworker: ["Coureiro", "Leatherworker"],
-    Tailor: ["Alfaiate", "Tailor"],
-    Scribe: ["Escriba", "Scribe"],
-    Helm: ["Elmo", "Head Armor"],
-    Shoulders: ["Ombreiras", "Shoulder Armor"],
-    Coat: ["Peitoral", "Chest Armor"],
-    Gloves: ["Luvas", "Hand Armor"],
-    Leggings: ["Calças", "Leg Armor"],
-    Boots: ["Botas", "Foot Armor"],
-    WeaponA1: ["Arma A1", "Main-Hand"],
-    WeaponA2: ["Arma A2", "Off-Hand"],
-    WeaponB1: ["Arma B1", "Alternate Main-Hand"],
-    WeaponB2: ["Arma B2", "Alternate Off-Hand"],
-    Backpack: ["Costas", "Back Item"],
-    Accessory1: ["Acessório 1", "Accessory"],
-    Accessory2: ["Acessório 2", "Accessory"],
-    Amulet: ["Amuleto", "Amulet"],
-    Ring1: ["Anel 1", "Ring"],
-    Ring2: ["Anel 2", "Ring"],
-    Relic: ["Relíquia", "Relic"],
-    HelmAquatic: ["Elmo aquático", "Aquatic Headgear"],
-    WeaponAquaticA: ["Arma aquática A", "Aquatic Weapon"],
-    WeaponAquaticB: ["Arma aquática B", "Alternate Aquatic Weapon"],
-    Sickle: ["Foice", "Foraging"],
-    Axe: ["Machado", "Logging"],
-    Pick: ["Picareta", "Mining"],
-    PlayForFree: ["Grátis", "Free"],
-    GuildWars2: ["Core", "Core"],
-    HeartOfThorns: ["Heart of Thorns", "Heart of Thorns"],
-    PathOfFire: ["Path of Fire", "Path of Fire"],
-    EndOfDragons: ["End of Dragons", "End of Dragons"],
-    SecretsOfTheObscure: ["Secrets of the Obscure", "Secrets of the Obscure"],
-    JanthirWilds: ["Janthir Wilds", "Janthir Wilds"],
-    IcebroodSaga: ["Icebrood Saga", "Icebrood Saga"],
-    VisionsOfEternity: ["Visions of Eternity", "Visions of Eternity"]
+    Guardian: "Guardian",
+    Revenant: "Revenant",
+    Warrior: "Warrior",
+    Engineer: "Engineer",
+    Ranger: "Ranger",
+    Thief: "Thief",
+    Elementalist: "Elementalist",
+    Mesmer: "Mesmer",
+    Necromancer: "Necromancer",
+    Human: "Human",
+    Charr: "Charr",
+    Norn: "Norn",
+    Asura: "Asura",
+    Sylvari: "Sylvari",
+    Male: "Male",
+    Female: "Female",
+    Weaponsmith: "Weaponsmith",
+    Armorsmith: "Armorsmith",
+    Artificer: "Artificer",
+    Chef: "Chef",
+    Huntsman: "Huntsman",
+    Jeweler: "Jeweler",
+    Leatherworker: "Leatherworker",
+    Tailor: "Tailor",
+    Scribe: "Scribe",
+    Helm: "Head Armor",
+    Shoulders: "Shoulder Armor",
+    Coat: "Chest Armor",
+    Gloves: "Hand Armor",
+    Leggings: "Leg Armor",
+    Boots: "Foot Armor",
+    WeaponA1: "Main-Hand",
+    WeaponA2: "Off-Hand",
+    WeaponB1: "Alternate Main-Hand",
+    WeaponB2: "Alternate Off-Hand",
+    Backpack: "Back Item",
+    Accessory1: "Accessory",
+    Accessory2: "Accessory",
+    Amulet: "Amulet",
+    Ring1: "Ring",
+    Ring2: "Ring",
+    Relic: "Relic",
+    HelmAquatic: "Aquatic Headgear",
+    WeaponAquaticA: "Aquatic Weapon",
+    WeaponAquaticB: "Alternate Aquatic Weapon",
+    Sickle: "Foraging",
+    Axe: "Logging",
+    Pick: "Mining",
+    PlayForFree: "Free",
+    GuildWars2: "Core",
+    HeartOfThorns: "Heart of Thorns",
+    PathOfFire: "Path of Fire",
+    EndOfDragons: "End of Dragons",
+    SecretsOfTheObscure: "Secrets of the Obscure",
+    JanthirWilds: "Janthir Wilds",
+    IcebroodSaga: "Icebrood Saga",
+    VisionsOfEternity: "Visions of Eternity",
   };
   const ACCESS_ORDER = [
     ["GuildWars2", ""],
@@ -249,23 +249,23 @@
   ];
 
   const UNLOCKS = [
-    { id: "skins", path: "/v2/skins", account: "/v2/account/skins", label: ["Visuais", "Skins"] },
-    { id: "dyes", path: "/v2/colors", account: "/v2/account/dyes", label: ["Tintas", "Dyes"] },
-    { id: "minis", path: "/v2/minis", account: "/v2/account/minis", label: ["Miniaturas", "Minis"] },
-    { id: "finishers", path: "/v2/finishers", account: "/v2/account/finishers", label: ["Finalizadores", "Finishers"] },
-    { id: "outfits", path: "/v2/outfits", account: "/v2/account/outfits", label: ["Trajes", "Outfits"] },
-    { id: "titles", path: "/v2/titles", account: "/v2/account/titles", label: ["Títulos", "Titles"] },
-    { id: "gliders", path: "/v2/gliders", account: "/v2/account/gliders", label: ["Planadores", "Gliders"] },
-    { id: "mail", path: "/v2/mailcarriers", account: "/v2/account/mailcarriers", label: ["Correio", "Mail"] },
-    { id: "novelties", path: "/v2/novelties", account: "/v2/account/novelties", label: ["Novidades", "Novelties"] },
-    { id: "jadebots", path: "/v2/jadebots", account: "/v2/account/jadebots", label: ["Jade bots", "Jade bots"] },
-    { id: "skiffs", path: "/v2/skiffs", account: "/v2/account/skiffs", label: ["Skiffs", "Skiffs"] },
-    { id: "emotes", path: "/v2/emotes", account: "/v2/account/emotes", label: ["Emotes", "Emotes"] },
-    { id: "mounts", path: "/v2/mounts/types", account: "/v2/account/mounts/types", label: ["Montarias", "Mounts"] },
-    { id: "mountskins", path: "/v2/mounts/skins", account: "/v2/account/mounts/skins", label: ["Visuais de montaria", "Mount skins"] },
-    { id: "recipes", path: "/v2/recipes", account: "/v2/account/recipes", label: ["Receitas", "Recipes"] },
-    { id: "nodes", path: "/v2/home/nodes", account: "/v2/account/home/nodes", label: ["Nós da casa", "Home nodes"] },
-    { id: "cats", path: "/v2/cats", account: "/v2/account/home/cats", label: ["Gatos", "Cats"] }
+    { id: "skins", path: "/v2/skins", account: "/v2/account/skins", label: "Skins" },
+    { id: "dyes", path: "/v2/colors", account: "/v2/account/dyes", label: "Dyes" },
+    { id: "minis", path: "/v2/minis", account: "/v2/account/minis", label: "Minis" },
+    { id: "finishers", path: "/v2/finishers", account: "/v2/account/finishers", label: "Finishers" },
+    { id: "outfits", path: "/v2/outfits", account: "/v2/account/outfits", label: "Outfits" },
+    { id: "titles", path: "/v2/titles", account: "/v2/account/titles", label: "Titles" },
+    { id: "gliders", path: "/v2/gliders", account: "/v2/account/gliders", label: "Gliders" },
+    { id: "mail", path: "/v2/mailcarriers", account: "/v2/account/mailcarriers", label: "Mail" },
+    { id: "novelties", path: "/v2/novelties", account: "/v2/account/novelties", label: "Novelties" },
+    { id: "jadebots", path: "/v2/jadebots", account: "/v2/account/jadebots", label: "Jade bots" },
+    { id: "skiffs", path: "/v2/skiffs", account: "/v2/account/skiffs", label: "Skiffs" },
+    { id: "emotes", path: "/v2/emotes", account: "/v2/account/emotes", label: "Emotes" },
+    { id: "mounts", path: "/v2/mounts/types", account: "/v2/account/mounts/types", label: "Mounts" },
+    { id: "mountskins", path: "/v2/mounts/skins", account: "/v2/account/mounts/skins", label: "Mount skins" },
+    { id: "recipes", path: "/v2/recipes", account: "/v2/account/recipes", label: "Recipes" },
+    { id: "nodes", path: "/v2/home/nodes", account: "/v2/account/home/nodes", label: "Home nodes" },
+    { id: "cats", path: "/v2/cats", account: "/v2/account/home/cats", label: "Cats" }
   ];
 
   const view = document.getElementById("account-view");
@@ -346,8 +346,7 @@
 
   function t() { return COPY.en; }
   function word(key) {
-    const pair = WORD[key];
-    return pair ? pair[1] : (key || "");
+    return WORD[key] || key || "";
   }
   function el(tag, cls, text) {
     const node = document.createElement(tag);
@@ -968,7 +967,7 @@
   }
   async function refreshUnlockCat() {
     const spec = UNLOCKS.find((entry) => entry.id === unlockCat) || UNLOCKS[0];
-    setStatus("Reading " + spec.label[1] + "…");
+    setStatus("Reading " + spec.label + "…");
     if (!snap.unlocks) snap.unlocks = {};
     const rawUnlock = await opt(spec.account);
     snap.unlocks[spec.id] = spec.id === "finishers" ? finisherRecords(rawUnlock) : asIds(rawUnlock);
@@ -3057,7 +3056,7 @@
     const root = el("div", "acct-body");
     const filters = el("div", "filters");
     UNLOCKS.forEach((spec) => {
-      const label = spec.label[1] + " " + ((snap.unlocks && snap.unlocks[spec.id] && snap.unlocks[spec.id].length) || 0);
+      const label = spec.label + " " + ((snap.unlocks && snap.unlocks[spec.id] && snap.unlocks[spec.id].length) || 0);
       filters.append(chip(label, unlockCat === spec.id, () => {
         unlockCat = spec.id;
         unlockQuery = "";
