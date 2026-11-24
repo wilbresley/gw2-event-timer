@@ -31,7 +31,7 @@
       bosses: "Bosses",
       wallet: "Wallet",
       unlocks: "Unlocks",
-      trade: "Action House",
+      trade: "Auction House",
       pvp: "PvP",
       wvw: "WvW",
       progress: "Progress",
@@ -92,12 +92,6 @@
       created: "Created",
       crafting: "Crafting",
       guild: "Guild",
-      builds: "Builds",
-      gearTabs: "Equipment templates",
-      noBuild: "No build on this template.",
-      heal: "Heal",
-      util: "Utility",
-      elite: "Elite",
       years: "years",
       days: "days",
       yes: "Yes",
@@ -289,7 +283,6 @@
     try { localStorage.removeItem(key); } catch (err) { /* modo privado */ }
   }
   let token = readStore(TOKEN_KEY, "") || "";
-  let lang = "pt";
   let open = false;
   let snap = null;
   let rows = [];
@@ -343,26 +336,13 @@
   let toolQuery = "";
   let toolPick = "";
   let focusSearch = false;
-  const buildShown = {};
   const equipShown = {};
   let detail = null;
   const items = new Map();
   const stats = new Map();
   const specs = new Map();
-  const traits = new Map();
-  const skills = new Map();
-  const legends = new Map();
   const skins = new Map();
   const unlockCache = new Map();
-  const palettes = new Map();
-  const paletteLoading = new Set();
-  const bodyWait = new Set();
-  let legendInfo = null;
-  let legendLoading = false;
-  const petInfo = new Map();
-  const petWait = new Set();
-  let specListReady = false;
-  let specListLoading = false;
 
   function t() { return COPY.en; }
   function word(key) {
@@ -424,7 +404,7 @@
     if (!iso) return "";
     const date = new Date(iso);
     if (Number.isNaN(date.getTime())) return "";
-    return date.toLocaleString(lang === "pt" ? "pt-BR" : "en-GB");
+    return date.toLocaleString("en-GB");
   }
   function age(sec) {
     const days = Math.floor((Number(sec) || 0) / 86400);
@@ -476,30 +456,28 @@
     })).catch(() => {});
   }
 
+  const CATALOG_SCHEMA = 2;
   function catalogBlob() {
-    const blob = { items: {}, stats: {}, specs: {}, traits: {}, skills: {}, legends: {}, skins: {}, unlocks: {} };
+    const blob = { schema: CATALOG_SCHEMA, items: {}, stats: {}, specs: {}, skins: {}, unlocks: {} };
     items.forEach((value, key) => { blob.items[key] = value; });
     stats.forEach((value, key) => { blob.stats[key] = value; });
     specs.forEach((value, key) => { blob.specs[key] = value; });
-    traits.forEach((value, key) => { blob.traits[key] = value; });
-    skills.forEach((value, key) => { blob.skills[key] = value; });
-    legends.forEach((value, key) => { blob.legends[key] = value; });
     skins.forEach((value, key) => { blob.skins[key] = value; });
     unlockCache.forEach((value, key) => { blob.unlocks[key] = value; });
     return blob;
   }
   async function saveCatalog() { await idbSet("catalog", catalogBlob()); }
   async function loadCatalog() {
-    const savedBars = await idbGet("prof-bars");
-    if (savedBars) Object.entries(savedBars).forEach(([key, value]) => palettes.set(key, value));
     const blob = await idbGet("catalog");
     if (!blob) return;
+    if (blob.schema !== CATALOG_SCHEMA) {
+      await idbDel("catalog");
+      await idbDel("prof-bars");
+      return;
+    }
     Object.values(blob.items || {}).forEach((item) => items.set(item.id, item));
     Object.entries(blob.stats || {}).forEach(([key, value]) => stats.set(Number(key), value));
     Object.entries(blob.specs || {}).forEach(([key, value]) => specs.set(Number(key), value));
-    Object.entries(blob.traits || {}).forEach(([key, value]) => traits.set(Number(key), value));
-    Object.entries(blob.skills || {}).forEach(([key, value]) => skills.set(Number(key), value));
-    Object.entries(blob.legends || {}).forEach(([key, value]) => legends.set(key, value));
     Object.entries(blob.skins || {}).forEach(([key, value]) => skins.set(Number(key), value));
     Object.entries(blob.unlocks || {}).forEach(([key, value]) => unlockCache.set(key, value));
   }
@@ -783,10 +761,7 @@
   function collectIds(data) {
     const ids = new Set();
     const skinsIds = new Set();
-    const skillIds = new Set();
-    const traitIds = new Set();
     const specIds = new Set();
-    const legendIds = new Set();
     function take(stack) {
       if (!stack || !stack.id) return;
       ids.add(stack.id);
@@ -812,18 +787,11 @@
       (ch.build_tabs || []).forEach((tab) => {
         const build = tab.build || {};
         (build.specializations || []).forEach((spec) => {
-          if (!spec) return;
-          if (spec.id) specIds.add(spec.id);
-          (spec.traits || []).forEach((id) => { if (id) traitIds.add(id); });
+          if (spec && spec.id) specIds.add(spec.id);
         });
-        const skillsBlock = build.skills || {};
-        if (skillsBlock.heal) skillIds.add(skillsBlock.heal);
-        if (skillsBlock.elite) skillIds.add(skillsBlock.elite);
-        (skillsBlock.utilities || []).forEach((id) => { if (id) skillIds.add(id); });
-        (build.legends || []).forEach((id) => { if (id) legendIds.add(id); });
       });
     });
-    return { ids: [...ids], skinsIds: [...skinsIds], skillIds: [...skillIds], traitIds: [...traitIds], specIds: [...specIds], legendIds: [...legendIds] };
+    return { ids: [...ids], skinsIds: [...skinsIds], specIds: [...specIds] };
   }
 
   async function fetchAll() {
@@ -948,11 +916,6 @@
     }
     (await byIds("/v2/specializations", bag.specIds.filter((id) => !specs.has(id)))).forEach((entry) => {
       specs.set(entry.id, { id: entry.id, name: entry.name, icon: entry.icon || "", elite: !!entry.elite });
-    });
-    (await byIds("/v2/traits", bag.traitIds.filter((id) => !traits.has(id)))).forEach(rememberTrait);
-    (await byIds("/v2/skills", bag.skillIds.filter((id) => !skills.has(id)))).forEach(rememberSkill);
-    (await byIds("/v2/legends", bag.legendIds.filter((id) => !legends.has(id)))).forEach((entry) => {
-      legends.set(entry.id, { id: entry.id, name: entry.name, icon: entry.icon || "" });
     });
     (await byIds("/v2/skins", bag.skinsIds.filter((id) => !skins.has(id)))).forEach((entry) => {
       skins.set(entry.id, { id: entry.id, name: entry.name, icon: entry.icon || "" });
@@ -1230,6 +1193,7 @@
   async function pull() {
     if (loading) return;
     if (rateHalted) { loadError = "halt"; render(); return; }
+    await syncGameBuild();
     beginSync();
     loading = true;
     loadError = "";
@@ -1470,69 +1434,6 @@
     const plain = gwPlain(text);
     if (plain) card.append(el("p", "detail-copy", plain));
   }
-  function rememberSkill(entry) {
-    if (!entry || entry.id == null) return;
-    const prev = skills.get(entry.id) || {};
-    const fromApi = Object.prototype.hasOwnProperty.call(entry, "facts") || Object.prototype.hasOwnProperty.call(entry, "description");
-    skills.set(entry.id, {
-      id: entry.id,
-      name: entry.name || prev.name || ("#" + entry.id),
-      icon: entry.icon || prev.icon || "",
-      description: entry.description != null ? entry.description : (prev.description || ""),
-      facts: entry.facts != null ? entry.facts : (prev.facts || null),
-      slot: entry.slot || prev.slot || "",
-      specialization: entry.specialization != null ? entry.specialization : (prev.specialization || 0),
-      attunement: entry.attunement != null ? entry.attunement : (prev.attunement || ""),
-      toolbelt: Object.prototype.hasOwnProperty.call(entry, "toolbelt_skill") ? (entry.toolbelt_skill || 0) : (prev.toolbelt || 0),
-      flip: Object.prototype.hasOwnProperty.call(entry, "flip_skill") ? (entry.flip_skill || 0) : (prev.flip || 0),
-      weapon: Object.prototype.hasOwnProperty.call(entry, "weapon_type") ? (entry.weapon_type || "") : (prev.weapon || ""),
-      weaponKnown: Object.prototype.hasOwnProperty.call(entry, "weapon_type") || prev.weaponKnown || false,
-      dual: Object.prototype.hasOwnProperty.call(entry, "dual_attunement") ? (entry.dual_attunement || "") : (fromApi ? "" : (prev.dual || "")),
-      dualKnown: fromApi || prev.dualKnown || false,
-      known: fromApi || prev.known || false
-    });
-  }
-  function rememberTrait(entry) {
-    if (!entry || entry.id == null) return;
-    const prev = traits.get(entry.id) || {};
-    traits.set(entry.id, {
-      id: entry.id,
-      name: entry.name || prev.name || ("#" + entry.id),
-      icon: entry.icon || prev.icon || "",
-      description: entry.description != null ? entry.description : (prev.description || ""),
-      facts: entry.facts != null ? entry.facts : (prev.facts || null),
-      specialization: entry.specialization != null ? entry.specialization : (prev.specialization || 0)
-    });
-  }
-  function ensureBody(kind, id) {
-    const key = kind + ":" + id;
-    if (bodyWait.has(key)) return;
-    const map = kind === "trait" ? traits : skills;
-    const row = map.get(id);
-    if (row && row.facts != null) return;
-    bodyWait.add(key);
-    opt((kind === "trait" ? "/v2/traits/" : "/v2/skills/") + id).then((full) => {
-      if (!full) return;
-      if (kind === "trait") rememberTrait(full);
-      else rememberSkill(full);
-      saveCatalog();
-      if (detail && detail.kind === kind && detail.id === id) paintDetail();
-    }).catch(() => {}).finally(() => bodyWait.delete(key));
-  }
-  function fillAbility(card, kind, id) {
-    const row = (kind === "trait" ? traits : skills).get(id);
-    const title = row ? row.name : ("#" + id);
-    detailHead(card, icon(row && row.icon, "detail-icon"), title, row && row.name);
-    if (kind === "trait" && row && row.specialization && specs.get(row.specialization)) {
-      card.append(el("p", "acct-muted", specs.get(row.specialization).name));
-    }
-    if (!row || row.facts == null) {
-      card.append(note("Reading this from ArenaNet…"));
-      return;
-    }
-    paintBlurb(card, row.description);
-    paintFacts(card, row.facts);
-  }
   function paintDetail() {
     const old = document.getElementById("acct-detail");
     if (!detail) {
@@ -1553,30 +1454,6 @@
     } else if (detail.kind === "unlock") {
       const name = detail.entry.name || String(detail.entry.id);
       detailHead(card, icon(detail.entry.icon, "detail-icon"), name, detail.entry.name || "");
-    } else if (detail.kind === "pet") {
-      const pet = petInfo.get(detail.id) || {};
-      const frame = el("span", "pet-frame");
-      frame.append(icon(pet.icon, "detail-icon"));
-      detailHead(card, frame, pet.name || "Pet", pet.name || "");
-      if (detail.where) card.append(el("p", "acct-muted", detail.where));
-      paintBlurb(card, pet.description);
-      const skillIds = (pet.skills || []).map((skill) => skill && skill.id).filter(Boolean);
-      if (skillIds.some((id) => !(skills.get(id) && skills.get(id).facts != null))) {
-        card.append(note("Reading this from ArenaNet…"));
-        ensureSkillBodies(skillIds).then(() => {
-          if (detail && detail.kind === "pet" && detail.id === pet.id) paintDetail();
-        });
-      } else if (skillIds.length) {
-        card.append(el("h3", "acct-cat", "Skills"));
-        const row = el("div", "skill-line");
-        row.style.gridTemplateColumns = "repeat(" + skillIds.length + ", 48px)";
-        skillIds.forEach((id, index) => row.append(skillIcon(id, "Skill " + (index + 1))));
-        card.append(row);
-      }
-    } else if (detail.kind === "skill" || detail.kind === "trait") {
-      const row = (detail.kind === "trait" ? traits : skills).get(detail.id);
-      if (!row || row.facts == null) ensureBody(detail.kind, detail.id);
-      fillAbility(card, detail.kind, detail.id);
     }
     wrap.append(card);
     if (old) old.replaceWith(wrap);
@@ -1971,7 +1848,7 @@
     const slots = snap.shared || [];
     const used = slots.filter((stack) => stack && stack.id).length;
     const head = el("div", "bag-head");
-    head.append(icon("assets/shared-slot.png", "bag-icon"));
+    head.append(icon("assets/shared-slot.png?v=1", "bag-icon"));
     const text = el("div", "");
     text.append(el("strong", "", t().shared));
     text.append(el("span", "", used + "/" + slots.length + " slots"));
@@ -2391,209 +2268,6 @@
     }
     return "";
   }
-  function pickOne(ids) {
-    const uniq = [];
-    ids.forEach((id) => { if (id && !uniq.includes(id)) uniq.push(id); });
-    if (uniq.length <= 1) return uniq[0] || 0;
-    const rows = uniq.map((id) => skills.get(id) || { id: id, name: "", flip: 0 });
-    const names = [...new Set(rows.map((row) => row.name).filter(Boolean))];
-    if (names.length <= 1) return uniq[0];
-    const kept = rows.filter((row) => !/^(Stow|Dismiss|Leave|Exit)\b/.test(row.name || ""));
-    const use = kept.length ? kept : rows;
-    if (use.length === 1) return use[0].id;
-    const useIds = use.map((row) => row.id);
-    const bases = use.filter((row) => row.flip && useIds.includes(row.flip));
-    const baseIds = [...new Set(bases.map((row) => row.id))];
-    if (baseIds.length === 1) return baseIds[0];
-    const counts = {};
-    use.forEach((row) => { counts[row.name] = (counts[row.name] || 0) + 1; });
-    const once = Object.keys(counts).filter((name) => counts[name] === 1);
-    const many = Object.keys(counts).filter((name) => counts[name] > 1);
-    if (once.length === 1 && many.length) {
-      const found = use.find((row) => row.name === once[0]);
-      if (found) return found.id;
-    }
-    return 0;
-  }
-  function rememberBars(blob) {
-    const saved = {};
-    palettes.forEach((value, key) => { saved[key] = value; });
-    return idbSet("prof-bars", Object.assign(saved, blob || {}));
-  }
-  function missingSkillIds(profId, extraIds) {
-    const palette = palettes.get(profId);
-    const ids = (extraIds || []).slice();
-    if (palette) {
-      (palette.links || []).forEach((link) => ids.push(link.id));
-      Object.values(palette.weapons || {}).forEach((weapon) => {
-        (weapon.skills || []).forEach((link) => ids.push(link.id));
-      });
-    }
-    return [...new Set(ids.filter((id) => {
-      const row = skills.get(id);
-      return id && !(row && row.known && row.weaponKnown && row.dualKnown);
-    }))];
-  }
-  async function ensureSkillBodies(ids) {
-    const need = [...new Set(ids.filter((id) => {
-      const row = skills.get(id);
-      return id && !(row && row.known && row.weaponKnown && row.dualKnown);
-    }))];
-    if (!need.length) return;
-    const got = await byIds("/v2/skills", need);
-    const have = new Set(got.map((entry) => entry.id));
-    got.forEach(rememberSkill);
-    need.forEach((id) => {
-      if (!have.has(id) && !skills.has(id)) {
-        skills.set(id, { id: id, name: "#" + id, icon: "", description: "", facts: [], known: true, weaponKnown: true, dualKnown: true, toolbelt: 0, flip: 0, specialization: 0, attunement: "", weapon: "", dual: "" });
-      }
-    });
-    const belts = [];
-    need.forEach((id) => {
-      const belt = (skills.get(id) || {}).toolbelt;
-      if (belt && !(skills.get(belt) && skills.get(belt).known)) belts.push(belt);
-    });
-    if (belts.length) (await byIds("/v2/skills", belts)).forEach(rememberSkill);
-    await saveCatalog();
-  }
-  function ensureProfession(profId, extraIds) {
-    if (!profId || paletteLoading.has(profId)) return;
-    if (palettes.has(profId) && !missingSkillIds(profId, extraIds).length) return;
-    paletteLoading.add(profId);
-    loadProfession(profId, extraIds).catch(() => { paletteLoading.delete(profId); });
-  }
-  async function loadProfession(profId, extraIds) {
-    try {
-      if (!palettes.has(profId)) {
-        const prof = await opt("/v2/professions/" + encodeURIComponent(profId));
-        if (!prof) {
-          palettes.set(profId, { id: profId, weapons: {}, links: [] });
-          return;
-        }
-        const weapons = {};
-        Object.entries(prof.weapons || {}).forEach(([type, weapon]) => {
-          weapons[type] = {
-            flags: weapon.flags || [],
-            specialization: weapon.specialization || 0,
-            skills: (weapon.skills || []).map((link) => ({
-              id: link.id,
-              slot: link.slot || "",
-              offhand: link.offhand || "",
-              attunement: link.attunement || ""
-            }))
-          };
-        });
-        palettes.set(profId, {
-          id: profId,
-          weapons: weapons,
-          links: (prof.skills || []).map((link) => ({ id: link.id, slot: link.slot || "" }))
-        });
-        await rememberBars();
-      }
-      await ensureSkillBodies(missingSkillIds(profId, extraIds));
-      if (section === "people") renderBody();
-    } finally {
-      paletteLoading.delete(profId);
-    }
-  }
-  function eliteSpecId(build) {
-    const list = (build && build.specializations) || [];
-    for (let i = 0; i < list.length; i += 1) {
-      const spec = list[i];
-      const known = spec && specs.get(spec.id);
-      if (known && known.elite) return spec.id;
-    }
-    return 0;
-  }
-  function linkAttune(link) {
-    if (!link) return "";
-    if (link.attunement) return link.attunement;
-    return (skills.get(link.id) || {}).attunement || "";
-  }
-  function usesAttunement(palette, type) {
-    const weapon = type && palette.weapons && palette.weapons[type];
-    if (!weapon) return false;
-    return (weapon.skills || []).some((link) => linkAttune(link));
-  }
-  function pickProfession(palette, eliteId, slot, ambiguous) {
-    const pool = (palette.links || []).filter((link) => link.slot === slot);
-    const elite = eliteId ? pool.filter((link) => ((skills.get(link.id) || {}).specialization || 0) === eliteId) : [];
-    const chosen = elite.length ? elite : pool.filter((link) => !((skills.get(link.id) || {}).specialization));
-    const id = pickOne(chosen.map((link) => link.id));
-    if (!id && new Set(chosen.map((link) => link.id)).size > 1) ambiguous.hit = true;
-    return id || 0;
-  }
-  function professionBar(palette, eliteId, slotted, ambiguous) {
-    const slots = [1, 2, 3, 4, 5].map((n) => pickProfession(palette, eliteId, "Profession_" + n, ambiguous));
-    const claimed = new Set();
-    if (eliteId) {
-      (palette.links || []).forEach((link) => {
-        if (String(link.slot).indexOf("Profession_") === 0 && ((skills.get(link.id) || {}).specialization || 0) === eliteId) claimed.add(link.slot);
-      });
-    }
-    const specName = (specs.get(eliteId) || {}).name || "";
-    const noToolbelt = specName === "Mechanist" || specName === "Amalgam";
-    if (palette.id === "Engineer" && !noToolbelt) {
-      slotted.forEach((id, index) => {
-        if (claimed.has("Profession_" + (index + 1)) || slots[index]) return;
-        const belt = (skills.get(id) || {}).toolbelt;
-        if (belt) slots[index] = belt;
-      });
-    }
-    return slots;
-  }
-  function pickWeaponLink(weapon, slot, offType, eliteId, attunement, ambiguous) {
-    if (!weapon) return 0;
-    let pool = (weapon.skills || []).filter((link) => link.slot === slot);
-    if (attunement) pool = pool.filter((link) => linkAttune(link) === attunement);
-    if (!pool.length) return 0;
-    if (offType && pool.some((link) => link.offhand)) {
-      const exact = pool.filter((link) => link.offhand === offType);
-      const plain = pool.filter((link) => !link.offhand || link.offhand === "Nothing");
-      pool = exact.length ? exact : (plain.length ? plain : pool);
-    }
-    const elite = eliteId ? pool.filter((link) => ((skills.get(link.id) || {}).specialization || 0) === eliteId) : [];
-    const core = pool.filter((link) => !((skills.get(link.id) || {}).specialization));
-    const chosen = elite.length ? elite : (core.length ? core : pool);
-    const id = pickOne(chosen.map((link) => link.id));
-    if (!id && new Set(chosen.map((link) => link.id)).size > 1) ambiguous.hit = true;
-    return id || 0;
-  }
-  function weaponBar(palette, mainType, offType, eliteId, attunement, ambiguous) {
-    const main = mainType && palette.weapons[mainType];
-    const off = offType && palette.weapons[offType];
-    const two = main && (main.flags || []).indexOf("TwoHand") >= 0;
-    return [1, 2, 3, 4, 5].map((n) => {
-      const slot = "Weapon_" + n;
-      if (two || n <= 3) return pickWeaponLink(main, slot, offType, eliteId, attunement, ambiguous);
-      return pickWeaponLink(off, slot, "", eliteId, attunement, ambiguous);
-    });
-  }
-  function weaponType(piece) {
-    if (!piece || !piece.id) return "";
-    const item = itemOf(piece.id);
-    if (!item || item.type !== "Weapon") return "";
-    return item.sub || "";
-  }
-  function skillIcon(id, title) {
-    const skill = id && skills.get(id);
-    if (!skill) {
-      const empty = el("span", "skill-ico empty");
-      if (title) empty.title = title;
-      return empty;
-    }
-    const button = el("button", "skill-ico");
-    button.type = "button";
-    button.title = skill.name ? (title + " · " + skill.name) : title;
-    button.append(icon(skill.icon, "skill-img"));
-    button.addEventListener("click", () => openDetail({ kind: "skill", id: id }));
-    return button;
-  }
-  function skillRow(ids, label) {
-    const row = el("div", "skill-icons");
-    ids.forEach((id, index) => row.append(skillIcon(id, label(index))));
-    return row;
-  }
   function gearSlots(ch) {
     const gearTabs = ch.equipment_tabs || [];
     const source = gearTabs.length ? ((gearTabs[equipShown[ch.name]] || gearTabs[0]).equipment || []) : (ch.equipment || []);
@@ -2605,361 +2279,6 @@
       if (piece && piece.slot) bySlot[piece.slot] = pieceStats(ch, piece);
     });
     return bySlot;
-  }
-  function cleanIds(ids) {
-    const uniq = [];
-    ids.forEach((id) => { if (id && !uniq.includes(id)) uniq.push(id); });
-    const kept = uniq.filter((id) => !/^(Stow|Dismiss|Leave|Exit)\b/.test(((skills.get(id) || {}).name) || ""));
-    return kept.length ? kept : uniq;
-  }
-  function expandBars(columns, cap) {
-    const lists = columns.map((col) => (col && col.length ? col : [0]));
-    const product = lists.reduce((count, col) => count * col.length, 1);
-    if (product <= cap) {
-      let rows = [[]];
-      lists.forEach((col) => {
-        const next = [];
-        rows.forEach((row) => col.forEach((id) => next.push(row.concat([id]))));
-        rows = next;
-      });
-      return rows;
-    }
-    const base = lists.map((col) => col[0]);
-    const rows = [base];
-    lists.forEach((col, index) => {
-      col.slice(1).forEach((id) => {
-        const row = base.slice();
-        row[index] = id;
-        rows.push(row);
-      });
-    });
-    return rows;
-  }
-  function sameBar(a, b) {
-    return a.length === b.length && a.every((id, index) => id === b[index]);
-  }
-  function dedupeBars(rows) {
-    const seen = new Set();
-    return rows.filter((ids) => {
-      const key = ids.map((id) => ((skills.get(id) || {}).name) || String(id || "")).join("|");
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }
-  function specOfLink(link) {
-    return ((skills.get(link.id) || {}).specialization) || 0;
-  }
-  function optionsForWeapon(weapon, slot, offType, eliteId, attunement) {
-    if (!weapon) return [];
-    let pool = (weapon.skills || []).filter((link) => link.slot === slot);
-    if (attunement) pool = pool.filter((link) => linkAttune(link) === attunement);
-    if (!pool.length) return [];
-    if (offType && pool.some((link) => link.offhand)) {
-      const exact = pool.filter((link) => link.offhand === offType);
-      const plain = pool.filter((link) => !link.offhand || link.offhand === "Nothing");
-      pool = exact.length ? exact : (plain.length ? plain : pool);
-    }
-    const elite = eliteId ? pool.filter((link) => specOfLink(link) === eliteId) : [];
-    const core = pool.filter((link) => !specOfLink(link));
-    const rest = pool.filter((link) => {
-      const spec = specOfLink(link);
-      return spec && spec !== eliteId;
-    });
-    return cleanIds(elite.concat(core).concat(rest).map((link) => link.id));
-  }
-  function weaponSlotOptions(palette, mainType, offType, eliteId, attunement) {
-    const main = mainType && palette.weapons[mainType];
-    const off = offType && palette.weapons[offType];
-    const two = main && (main.flags || []).indexOf("TwoHand") >= 0;
-    return [1, 2, 3, 4, 5].map((n) => {
-      const slot = "Weapon_" + n;
-      if (two || n <= 3) return optionsForWeapon(main, slot, offType, eliteId, attunement);
-      return optionsForWeapon(off, slot, "", eliteId, attunement);
-    });
-  }
-  function attuneList(palette, mainType, offType) {
-    if (!(usesAttunement(palette, mainType) || usesAttunement(palette, offType))) return [""];
-    return ["Fire", "Water", "Air", "Earth"];
-  }
-  function professionColumns(palette, eliteId, slotted) {
-    const claimed = new Set();
-    const columns = [1, 2, 3, 4, 5].map((n) => {
-      const slot = "Profession_" + n;
-      const pool = (palette.links || []).filter((link) => link.slot === slot);
-      const elite = eliteId ? pool.filter((link) => specOfLink(link) === eliteId) : [];
-      const core = pool.filter((link) => !specOfLink(link));
-      const chosen = elite.length ? elite : core;
-      if (elite.length) claimed.add(slot);
-      return cleanIds(chosen.map((link) => link.id));
-    });
-    const specName = (specs.get(eliteId) || {}).name || "";
-    const noToolbelt = specName === "Mechanist" || specName === "Amalgam";
-    if (palette.id === "Engineer" && !noToolbelt) {
-      slotted.forEach((id, index) => {
-        if (claimed.has("Profession_" + (index + 1)) || columns[index].length) return;
-        const belt = (skills.get(id) || {}).toolbelt;
-        if (belt) columns[index] = [belt];
-      });
-    }
-    return columns;
-  }
-  function ensureSpecList() {
-    if (specListReady || specListLoading) return;
-    specListLoading = true;
-    opt("/v2/specializations?ids=all").then((list) => {
-      (list || []).forEach((entry) => {
-        const prev = specs.get(entry.id) || {};
-        specs.set(entry.id, {
-          id: entry.id,
-          name: entry.name || prev.name || "",
-          icon: entry.icon || prev.icon || "",
-          elite: !!entry.elite
-        });
-      });
-      specListReady = true;
-      if (section === "people") renderBody();
-    }).catch(() => { specListReady = true; }).finally(() => { specListLoading = false; });
-  }
-  function ensureLegends() {
-    if (legendInfo || legendLoading) return;
-    legendLoading = true;
-    opt("/v2/legends?ids=all").then(async (list) => {
-      const map = new Map();
-      const ids = [];
-      (list || []).forEach((entry) => {
-        map.set(entry.id, entry);
-        [entry.swap, entry.heal, entry.elite].concat(entry.utilities || []).forEach((id) => { if (id) ids.push(id); });
-      });
-      legendInfo = map;
-      await ensureSkillBodies(ids);
-      if (section === "people") renderBody();
-    }).catch(() => {
-      legendInfo = new Map();
-      if (section === "people") renderBody();
-    }).finally(() => { legendLoading = false; });
-  }
-  function oneOf(ids, eliteId) {
-    const pool = cleanIds(ids);
-    if (pool.length === 1) return pool[0];
-    const specName = eliteId ? (((specs.get(eliteId) || {}).name) || "").toLowerCase() : "";
-    if (specName) {
-      const hits = pool.filter((id) => (((skills.get(id) || {}).name) || "").toLowerCase().includes(specName));
-      if (hits.length === 1) return hits[0];
-    }
-    if (!eliteId && pool.length > 1) {
-      const eliteNames = [];
-      specs.forEach((spec) => { if (spec && spec.elite && spec.name) eliteNames.push(spec.name.toLowerCase()); });
-      const plain = pool.filter((id) => {
-        const name = (((skills.get(id) || {}).name) || "").toLowerCase();
-        return !eliteNames.some((elite) => elite && name.includes(elite));
-      });
-      if (plain.length === 1) return plain[0];
-    }
-    return pickOne(pool) || 0;
-  }
-  function fRowForWeapon(palette, eliteId, slotted, weaponName) {
-    const row = [1, 2, 3, 4, 5].map((n) => {
-      const slot = "Profession_" + n;
-      const pool = (palette.links || []).filter((link) => link.slot === slot);
-      const elite = eliteId ? pool.filter((link) => specOfLink(link) === eliteId) : [];
-      const chosen = elite.length ? elite : pool.filter((link) => !specOfLink(link));
-      let ids = chosen.map((link) => link.id);
-      const exact = weaponName ? ids.filter((id) => ((skills.get(id) || {}).weapon || "") === weaponName) : [];
-      if (exact.length) ids = exact;
-      else {
-        ids = ids.filter((id) => {
-          const kind = (skills.get(id) || {}).weapon || "";
-          return !kind || kind === "None";
-        });
-      }
-      return oneOf(ids, eliteId);
-    });
-    const specName = (specs.get(eliteId) || {}).name || "";
-    const noToolbelt = specName === "Mechanist" || specName === "Amalgam";
-    if (palette.id === "Engineer" && !noToolbelt) {
-      slotted.forEach((id, index) => {
-        if (row[index]) return;
-        const belt = (skills.get(id) || {}).toolbelt;
-        if (belt) row[index] = belt;
-      });
-    }
-    return row;
-  }
-  function legendRow(palette, legend, eliteId) {
-    const swap = legend && legend.swap;
-    const spec = ((skills.get(swap) || {}).specialization) || 0;
-    return [1, 2, 3, 4, 5].map((n) => {
-      if (n === 1 && swap) return swap;
-      const pool = (palette.links || []).filter((link) => link.slot === "Profession_" + n && specOfLink(link) === spec);
-      return oneOf(pool.map((link) => link.id), spec || eliteId);
-    });
-  }
-  function equippedPetSlots(build) {
-    const pets = (build && build.pets) || {};
-    const land = (pets.terrestrial || []).filter(Boolean).slice(0, 2);
-    const water = (pets.aquatic || []).filter(Boolean).slice(0, 2);
-    return land.map((id) => ({ id: id, where: "Terrestrial" })).concat(water.map((id) => ({ id: id, where: "Aquatic" })));
-  }
-  function ensurePets(ids) {
-    const need = ids.filter((id) => id && !petInfo.has(id) && !petWait.has(id));
-    if (!need.length) return;
-    need.forEach((id) => petWait.add(id));
-    byIds("/v2/pets", need).then(async (list) => {
-      const skillIds = [];
-      (list || []).forEach((pet) => {
-        petInfo.set(pet.id, pet);
-        (pet.skills || []).forEach((skill) => { if (skill && skill.id) skillIds.push(skill.id); });
-      });
-      need.forEach((id) => { if (!petInfo.has(id)) petInfo.set(id, { id: id, name: "", icon: "", description: "", skills: [] }); });
-      await ensureSkillBodies(skillIds);
-      if (section === "people") renderBody();
-    }).catch(() => {
-      need.forEach((id) => { if (!petInfo.has(id)) petInfo.set(id, { id: id, name: "", icon: "" }); });
-      if (section === "people") renderBody();
-    }).finally(() => { need.forEach((id) => petWait.delete(id)); });
-  }
-  function weaponPicks(palette, mainType, offType, eliteId, attunement) {
-    return weaponSlotOptions(palette, mainType, offType, eliteId, attunement).map((ids) => {
-      let pool = ids;
-      if (attunement) {
-        pool = ids.filter((id) => {
-          const dual = (skills.get(id) || {}).dual || "";
-          return !dual || dual === attunement;
-        });
-      }
-      if (pool.length === 1) return pool[0];
-      const elite = eliteId ? pool.filter((id) => ((skills.get(id) || {}).specialization || 0) === eliteId) : [];
-      const core = pool.filter((id) => !((skills.get(id) || {}).specialization));
-      if (elite.length === 1) return elite[0];
-      if (core.length === 1) return core[0];
-      return 0;
-    });
-  }
-  function paintPetLine(parent, slots) {
-    if (!slots.length) return;
-    const row = el("div", "skill-line");
-    row.style.gridTemplateColumns = "repeat(" + slots.length + ", 48px)";
-    slots.forEach((slot) => {
-      const pet = petInfo.get(slot.id) || {};
-      const face = el("button", "skill-ico pet-ico");
-      face.type = "button";
-      face.title = slot.where + (pet.name ? " · " + pet.name : "");
-      face.append(icon(pet.icon, "skill-img"));
-      face.addEventListener("click", () => openDetail({ kind: "pet", id: slot.id, where: slot.where }));
-      row.append(face);
-    });
-    parent.append(row);
-  }
-  function legendIdsOf(build) {
-    const direct = (build && build.legends) || [];
-    const nested = (build && build.skills && build.skills.legends) || [];
-    return (direct.length ? direct : nested).filter(Boolean);
-  }
-  function legendBar(legend, slotted) {
-    const kit = new Set([legend.heal].concat(legend.utilities || [], legend.elite).filter(Boolean));
-    const picked = (slotted || []).filter(Boolean);
-    if (picked.length && picked.every((id) => kit.has(id))) {
-      const row = slotted.slice(0, 5);
-      while (row.length < 5) row.push(0);
-      return row;
-    }
-    const utils = (legend.utilities || []).slice(0, 3);
-    while (utils.length < 3) utils.push(0);
-    return [legend.heal || 0, utils[0], utils[1], utils[2], legend.elite || 0];
-  }
-  function paintSkillLine(parent, ids, labelFor, columns) {
-    if (!ids.some(Boolean)) return;
-    const row = el("div", "skill-line");
-    row.style.gridTemplateColumns = "repeat(" + columns + ", 48px)";
-    ids.forEach((id, index) => {
-      if (!id) row.append(el("span", "skill-gap"));
-      else row.append(skillIcon(id, labelFor(index)));
-    });
-    parent.append(row);
-  }
-  function appendSkillBoard(box, ch, build, slots) {
-    const board = el("div", "skill-board");
-    const skillsBlock = (build && build.skills) || {};
-    const utils = (skillsBlock.utilities || []).slice(0, 3);
-    while (utils.length < 3) utils.push(0);
-    const slotted = [skillsBlock.heal || 0, utils[0], utils[1], utils[2], skillsBlock.elite || 0];
-    const palette = palettes.get(ch.profession);
-    const petSlots = ch.profession === "Ranger" ? equippedPetSlots(build) : [];
-    const legendIds = ch.profession === "Revenant" ? legendIdsOf(build) : [];
-    ensureProfession(ch.profession, slotted);
-    if (petSlots.length) ensurePets(petSlots.map((slot) => slot.id));
-    if (legendIds.length) ensureLegends();
-    const petsReady = petSlots.every((slot) => petInfo.has(slot.id));
-    const legendsReady = !legendIds.length || (legendInfo && legendIds.every((id) => legendInfo.has(id)));
-    const legendSkills = [];
-    if (legendsReady) legendIds.forEach((id) => legendBar(legendInfo.get(id), slotted).forEach((skillId) => legendSkills.push(skillId)));
-    const waiting = !palette || missingSkillIds(ch.profession, slotted.concat(legendSkills)).length > 0 || (petSlots.length > 0 && !petsReady) || (legendIds.length > 0 && !legendsReady);
-    const eliteId = eliteSpecId(build);
-    const healLabels = ["Heal", "Utility 1", "Utility 2", "Utility 3", "Elite"];
-    if (palette && !waiting) {
-      const sets = [];
-      const firstMain = weaponType(slots.WeaponA1);
-      const firstOff = weaponType(slots.WeaponA2);
-      const secondMain = weaponType(slots.WeaponB1);
-      const secondOff = weaponType(slots.WeaponB2);
-      if (firstMain || firstOff) sets.push(["Weapon set 1", firstMain, firstOff]);
-      if (secondMain || secondOff) sets.push(["Weapon set 2", secondMain, secondOff]);
-      let mainIds = null;
-      let mainLabel = "";
-      const variations = [];
-      sets.forEach((set) => {
-        attuneList(palette, set[1], set[2]).forEach((att) => {
-          const ids = weaponPicks(palette, set[1], set[2], eliteId, att);
-          if (!ids.some(Boolean)) return;
-          const prefix = [sets.length > 1 ? set[0] : "", att].filter(Boolean).join(" · ");
-          if (!mainIds) {
-            mainIds = ids;
-            mainLabel = prefix;
-            return;
-          }
-          variations.push({ ids: ids, prefix: prefix });
-        });
-      });
-      const weaponIds = mainIds || [0, 0, 0, 0, 0];
-      const revenant = ch.profession === "Revenant";
-      const heroes = [];
-      if (revenant && legendInfo) {
-        legendIds.forEach((id) => {
-          const legend = legendInfo.get(id);
-          if (!legend) return;
-          heroes.push({ ids: legendBar(legend, slotted), hero: (skills.get(legend.swap) || {}).name || "Legend" });
-        });
-      }
-      if (revenant) {
-        const weaponRows = [{ ids: weaponIds, prefix: mainLabel }].concat(variations);
-        const lines = Math.max(weaponRows.length, heroes.length, 1);
-        for (let i = 0; i < lines; i += 1) {
-          const weapons = (weaponRows[i] && weaponRows[i].ids) || [0, 0, 0, 0, 0];
-          const hero = heroes[i];
-          const prefix = weaponRows[i] ? weaponRows[i].prefix : "";
-          if (!weapons.some(Boolean) && !hero) continue;
-          paintSkillLine(board, weapons.concat(hero ? hero.ids : [0, 0, 0, 0, 0]), (index) => {
-            if (index < 5) return (prefix ? prefix + " · " : "") + "Skill " + (index + 1);
-            return hero ? hero.hero + " · " + healLabels[index - 5] : "";
-          }, 10);
-        }
-      } else {
-        paintSkillLine(board, weaponIds.concat(slotted), (index) => {
-          if (index < 5) return (mainLabel ? mainLabel + " · " : "") + "Skill " + (index + 1);
-          return healLabels[index - 5];
-        }, 10);
-        variations.forEach((row) => {
-          if (mainIds && sameBar(row.ids, mainIds)) return;
-          paintSkillLine(board, row.ids, (index) => (row.prefix ? row.prefix + " · " : "") + "Skill " + (index + 1), 5);
-        });
-      }
-      if (petSlots.length) paintPetLine(board, petSlots);
-    } else {
-      paintSkillLine(board, [0, 0, 0, 0, 0].concat(slotted), (index) => (index < 5 ? "Skill " + (index + 1) : healLabels[index - 5]), 10);
-      if (waiting) board.append(note("Reading profession and weapon skills…"));
-    }
-    box.append(board);
   }
   function pieceStats(ch, piece) {
     if (!piece) return piece;
@@ -3018,55 +2337,9 @@
       (ch.crafting || []).map((job) => word(job.discipline) + " " + job.rating).join(", ")
     ].filter(Boolean).forEach((text) => facts.append(el("span", "acct-fact", text)));
     box.append(facts);
-    const builds = ch.build_tabs || [];
-    if (!(ch.name in buildShown)) buildShown[ch.name] = Math.max(0, builds.findIndex((tab) => tab.is_active));
     const gearTabs = ch.equipment_tabs || [];
     if (!(ch.name in equipShown)) equipShown[ch.name] = Math.max(0, gearTabs.findIndex((tab) => tab.is_active));
     const worn = gearSlots(ch);
-    box.append(el("h3", "acct-cat", "Build templates · " + builds.length + " unlocked"));
-    if (builds.length) {
-      const tabs = el("div", "filters");
-      builds.forEach((tab, index) => {
-        tabs.append(chip((tab.name || ("Build " + tab.tab)) + (tab.is_active ? " · " + L.active : ""), buildShown[ch.name] === index, () => {
-          buildShown[ch.name] = index;
-          renderBody();
-        }));
-      });
-      box.append(tabs);
-      const tab = builds[buildShown[ch.name]] || builds[0];
-      const build = (tab && tab.build) || {};
-      const cols = el("div", "build-cols");
-      (build.specializations || []).forEach((spec) => {
-        if (!spec || !spec.id) return;
-        const known = specs.get(spec.id);
-        const col = el("div", "build-col");
-        const head = el("div", "acct-trait");
-        head.append(icon(known && known.icon, "acct-icon"), el("strong", "", known ? known.name : "#" + spec.id));
-        col.append(head);
-        (spec.traits || []).forEach((id) => {
-          if (!id) return;
-          const trait = traits.get(id);
-          const line = el("button", "acct-trait");
-          line.type = "button";
-          line.title = trait ? trait.name : ("#" + id);
-          line.append(icon(trait && trait.icon, "acct-icon"), el("span", "", trait ? trait.name : "#" + id));
-          line.addEventListener("click", () => openDetail({ kind: "trait", id: id }));
-          col.append(line);
-        });
-        cols.append(col);
-      });
-      box.append(cols);
-      appendSkillBoard(box, ch, build, worn);
-      const legendsRow = el("div", "skill-row");
-      (build.legends || []).forEach((id) => {
-        const legend = legends.get(id);
-        if (!legend) return;
-        const line = el("div", "acct-skill");
-        line.append(icon(legend.icon, "acct-icon"), el("span", "", legend.name));
-        legendsRow.append(line);
-      });
-      if (legendsRow.childNodes.length) box.append(legendsRow);
-    } else box.append(note(L.noBuild));
     box.append(el("h3", "acct-cat", "Equipment templates · " + gearTabs.length + " unlocked"));
     if (gearTabs.length) {
       const tabs = el("div", "filters");
@@ -4315,6 +3588,8 @@
       writeStore(TOKEN_KEY, next);
       token = next;
       input.value = "";
+      await prepare();
+      startTimers();
       await pull();
     });
     input.addEventListener("keydown", (event) => {
@@ -4369,7 +3644,6 @@
     const chars = (snap && snap.characters) || [];
     person = chars[0] ? chars[0].name : "";
     chars.forEach((ch) => {
-      buildShown[ch.name] = tabOne(ch.build_tabs);
       equipShown[ch.name] = tabOne(ch.equipment_tabs);
     });
   }
@@ -4630,29 +3904,44 @@
     }
   }
 
-  let booted = false;
-  async function boot() {
-    if (!token || booted) return;
-    booted = true;
-    await loadCatalog();
-    if (!snap) {
-      const cached = await idbGet("snap:" + hash(token));
-      if (cached && cached.account) {
-        snap = cached;
-        rows = indexRows(snap);
-        applyBosses();
-      }
+  let preparePromise = null;
+  let timersOn = false;
+  let buildCheckedAt = 0;
+
+  async function syncGameBuild() {
+    if (Date.now() - buildCheckedAt < 60000) return false;
+    buildCheckedAt = Date.now();
+    let build = null;
+    try { build = await opt("/v2/build"); } catch (err) { return false; }
+    const id = build && build.id;
+    if (id == null) return false;
+    const saved = await idbGet("game-build");
+    const changed = saved != null && String(saved) !== String(id);
+    if (changed) {
+      items.clear();
+      stats.clear();
+      specs.clear();
+      skins.clear();
+      unlockCache.clear();
+      await idbDel("catalog");
     }
-    const now = Date.now();
-    const saved = (snap && snap.saved) || 0;
-    const bossesAt = (snap && (snap.bossesSaved || snap.saved)) || 0;
-    paintToolShelf();
-    paintApiDown();
-    paintSync();
-    startCatalogs();
-    if (!snap) pull();
-    else if (now - saved > 10 * 60 * 1000) refreshLive();
-    else if (now - bossesAt > 3600000) refreshBosses();
+    await idbSet("game-build", id);
+    return changed;
+  }
+
+  function prepare() {
+    if (!preparePromise) {
+      preparePromise = (async () => {
+        await syncGameBuild();
+        await loadCatalog();
+      })().catch(() => {});
+    }
+    return preparePromise;
+  }
+
+  function startTimers() {
+    if (timersOn) return;
+    timersOn = true;
     setInterval(() => {
       if (!token || loading || document.hidden) return;
       refreshBosses();
@@ -4669,6 +3958,34 @@
       if (document.hidden) return;
       paintRefreshAll();
     }, 1000);
+  }
+
+  let booted = false;
+  async function boot() {
+    if (booted) return;
+    booted = true;
+    if (!token) return;
+    await prepare();
+    startTimers();
+    if (!snap) {
+      const cached = await idbGet("snap:" + hash(token));
+      if (cached && cached.account) {
+        snap = cached;
+        rows = indexRows(snap);
+        applyBosses();
+        hydrate(snap).catch(() => {}).finally(() => { if (open) render(); });
+      }
+    }
+    const now = Date.now();
+    const saved = (snap && snap.saved) || 0;
+    const bossesAt = (snap && (snap.bossesSaved || snap.saved)) || 0;
+    paintToolShelf();
+    paintApiDown();
+    paintSync();
+    startCatalogs();
+    if (!snap) pull();
+    else if (now - saved > 10 * 60 * 1000) refreshLive();
+    else if (now - bossesAt > 3600000) refreshBosses();
   }
 
   window.GW2Account = {

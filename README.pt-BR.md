@@ -2,7 +2,7 @@
 
 [![English](https://img.shields.io/badge/Read%20in-English-1f6feb?style=for-the-badge)](README.md)
 
-Versão 1.0.1.
+Versão 1.1.0.
 
 Página de horários de chefes e metas do Guild Wars 2, com um painel opcional da conta. Abre no navegador. O relógio é o do aparelho de quem está olhando. Não tem banco de dados, não tem login do site e não tem etapa de compilação.
 
@@ -263,11 +263,11 @@ O botão **Account** abre um painel no mesmo navegador. A pessoa cola uma chave 
 
 As consultas partem do navegador dessa pessoa direto para `https://api.guildwars2.com`. Este container não faz proxy dessas chamadas e não guarda a chave. Ícones vindos de `render.guildwars2.com` não entram na conta de pedidos da API.
 
-Os menus, nesta ordem, são Summary, Legendary, Ascended, Inventory, Characters, Tools, Bosses, Wallet, Unlocks, Action House, PvP, WvW, Progress e Guilds. O painel mostra o que a API devolve e redesenha o menu aberto quando uma leitura termina. Não é preciso recarregar a página.
+Os menus, nesta ordem, são Summary, Legendary, Ascended, Inventory, Characters, Tools, Bosses, Wallet, Unlocks, Auction House, PvP, WvW, Progress e Guilds. O painel mostra o que a API devolve e redesenha o menu aberto quando uma leitura termina. Não é preciso recarregar a página.
 
 À esquerda de **Forget Account** ficam quatro botões:
 
-- **Clear this menu's filters** limpa os filtros do menu aberto. Em Characters, volta ao primeiro personagem da lista, ao build 1 e ao equipamento 1.
+- **Clear this menu's filters** limpa os filtros do menu aberto. Em Characters, volta ao primeiro personagem da lista e ao equipamento 1.
 - **Clear filters on all menus** limpa os filtros de todos os menus, com o mesmo retorno em Characters.
 - **Update this menu from the API** lê de novo só o menu aberto.
 - **Update all menus from the API** lê a conta de novo. Esse botão espera 60 segundos entre um uso e outro.
@@ -278,7 +278,7 @@ Os menus, nesta ordem, são Summary, Legendary, Ascended, Inventory, Characters,
 
 **Inventory** separa Bank, Shared Slot, Materials e cada personagem. Cada aba do banco é uma grade de 10 colunas por 3 linhas. O modo agrupado do banco também fica em 10 colunas. O inventário compartilhado fica em 10 colunas e mostra a quantidade de espaços que a API devolve, sem completar além disso. Os materiais seguem as categorias oficiais da API, na ordem oficial, e listam o que está guardado. Uma categoria vazia continua na lista. A API não informa o tamanho desbloqueado do armazém de materiais, então a página não inventa esse número. O seletor de colunas muda só as bolsas do personagem. O nome de cada personagem nesse filtro usa a cor da classe.
 
-**Characters** mostra as skills 1 a 5 das armas equipadas, mais cura, utilities e elite. Não há skills de F1 a F5. No elementalist, cada elemento mostra a skill daquele elemento na arma equipada. No ranger, aparecem só os pets equipados. Na revenant, cada herói equipado tem a própria barra de cura e utilities, desenhada ao lado de uma linha de arma só para o alinhamento visual. A arma não escolhe essas skills.
+**Characters** mostra os dados de cada personagem, a elite specialization e os equipment templates, com os itens equipados em cada template. Build templates e a barra de skills foram removidos de propósito; as skills se veem no jogo. A elite specialization vem da conta e precisa da permissão `builds` na chave.
 
 **Tools** separa ferramentas infinitas e limitadas. Dá para rastrear uma ferramenta infinita de cada tipo, e **Clear tracked tools** tira esse rastreio do topo. Numa janela estreita as três ferramentas ficam numa linha dentro do menu. Entre as infinitas e as limitadas entram só os glyphs de ferramenta, soltos ou encaixados numa ferramenta. Runas, sigilos e os outros upgrades não entram. Clicar num glyph abre onde ele está.
 
@@ -288,7 +288,7 @@ Os menus, nesta ordem, são Summary, Legendary, Ascended, Inventory, Characters,
 
 A página não calcula atributos de combate. Se a API não manda o número, o painel não inventa.
 
-O navegador segura um cache local em IndexedDB para não baixar de novo catálogos que mudam pouco, como itens, skins e receitas. A primeira abertura de uma conta grande demora mais. As seguintes usam o que já foi salvo nesse navegador.
+O navegador segura um cache local em IndexedDB para não baixar de novo catálogos que mudam pouco, como itens, skins e receitas. A primeira abertura de uma conta grande demora mais. As seguintes usam o que já foi salvo nesse navegador. Quando o build do jogo muda, a página descarta o catálogo guardado e o refaz sob demanda.
 
 Há um teto de 600 pedidos por minuto no próprio navegador, para ficar dentro do limite público da ArenaNet. A conta se atualiza sozinha a cada 10 minutos, as ferramentas a cada 5 minutos e os chefes da conta a cada hora. Se a API da ArenaNet não responde, o painel fecha e o timer de eventos continua.
 
@@ -307,7 +307,7 @@ Nada do timer é enviado a um servidor além da própria página. Favoritos, ale
 | `docker-compose.yml` | Sobe o Nginx e publica a porta 8094 |
 | `nginx.conf` | Entrega a página, comprime os arquivos de texto e manda os cabeçalhos de segurança |
 | `start.ps1`, `start.sh` | Atalho para `docker compose up -d` |
-| `VERSION` | Número desta versão: 1.0.1 |
+| `VERSION` | Número desta versão: 1.1.0 |
 | `README.md` | Documentação em inglês |
 | `README.pt-BR.md` | Esta documentação |
 | `AGENTS.md` | Notas para quem mexer no código depois, inclusive uma IA |
@@ -327,7 +327,7 @@ A imagem usada é `nginx:1.30-alpine`. Ela não é construída neste repositóri
 
 O `nginx.conf` comprime os arquivos de texto, manda `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` e um `Content-Security-Policy`, e responde arquivo inexistente com 404 de verdade em vez da página. A política libera os arquivos da própria página, a API em `api.guildwars2.com`, os ícones dos itens em `render.guildwars2.com` e o worker que mantém o relógio andando em aba de segundo plano.
 
-O `site/account.js` tem uns 200 KB e só é baixado por quem abre Account. Um navegador que já tem uma chave salva carrega ele na abertura, porque as ferramentas do topo vêm dele.
+O `site/account.js` tem uns 165 KB e só é baixado por quem abre Account. Um navegador que já tem uma chave salva carrega ele na abertura, porque as ferramentas do topo vêm dele.
 
 ## Quando algo não abre
 
@@ -344,6 +344,6 @@ docker compose logs
 
 **A conta não carrega e aparece aviso de API.** A ArenaNet pode estar em manutenção. O timer de eventos não depende dessa API e continua. Tente o painel de novo mais tarde.
 
-**A chave foi colada e nada muda.** A chave precisa das permissões da conta que o painel lê, como account, characters, inventories e unlocks. Uma chave sem permissão volta vazia ou com erro naquela seção. **Forget Account** limpa a chave errada para colar outra.
+**A chave foi colada e nada muda.** A chave precisa das permissões da conta que o painel lê, como account, characters, builds, inventories e unlocks. Uma chave sem permissão volta vazia ou com erro naquela seção. **Forget Account** limpa a chave errada para colar outra.
 
 **Atualizei os arquivos e o navegador mostra a versão velha.** Recarregue a página. O Nginx manda `Cache-Control: no-cache`. Se ainda assim parecer antigo, faça um recarregamento forçado do navegador.

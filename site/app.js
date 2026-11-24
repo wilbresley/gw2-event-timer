@@ -5,7 +5,6 @@
   const I18N = {
     en: {
       title: "Gw2 Event Timer",
-      lang: "PT-BR",
       html: "en-US",
       soundLabel: "Sound",
       soundOn: "Sound on",
@@ -97,7 +96,6 @@
     catch (err) { return new Set(); }
   }
 
-  let lang = "en";
   let sound = readFlag("gw2-sound") !== "0";
   const REPEAT_DEFAULT = { prep: 2, soon: 3, start: 5 };
   function loadRepeats() {
@@ -114,7 +112,8 @@
     if (kind === "preview") return 1;
     return repeats[kind] || REPEAT_DEFAULT[kind] || 1;
   }
-  let cats = new Set(readList("gw2-cats").length ? readList("gw2-cats") : [readFlag("gw2-filter") || "main"]);
+  const storedCats = readFlag("gw2-cats");
+  let cats = new Set(storedCats === null ? [readFlag("gw2-filter") || "main"] : readList("gw2-cats"));
   let queues = new Set(readList("gw2-queues"));
   let favOn = readFlag("gw2-fav") === "1";
   let alertOn = readFlag("gw2-alert-on") === "1";
@@ -137,6 +136,7 @@
   let lastSig = "";
   let tipTimer = 0;
   let lastWatch = 0;
+  let footAt = 0;
   let alarmHadFocus = false;
   let alarmFocusBack = null;
   let soundUnlocked = false;
@@ -152,7 +152,7 @@
   const PHASE_KEEP_MS = 36 * 3600 * 1000;
   const PREP_MIN = { "g10-3": 20, "g9-3": 15, "g11-1": 15 };
 
-  function t() { return I18N[lang]; }
+  function t() { return I18N.en; }
 
   function slots(group, segment) {
     const found = [];
@@ -325,7 +325,7 @@
   }
 
   function resetClock() {
-    const mark = new Date(Date.UTC(2026, 0, 1, 0, 0, 0));
+    const mark = utcMidnight(Date.now());
     return formatter(t().html, {
       hour: "2-digit",
       minute: "2-digit",
@@ -336,10 +336,7 @@
   function footText() {
     const time = resetClock();
     const city = placeName();
-    if (lang === "en") {
-      return "Times follow this device. Done clears at the game reset, " + time + " in " + city + ". Favorites and alerts stay saved in this browser.";
-    }
-    return "O horário é o deste aparelho. Concluídos zeram no reset do jogo, às " + time + " em " + city + ". Favoritos e alertas ficam salvos neste navegador.";
+    return "Times follow this device. Done clears at the game reset, " + time + " in " + city + ". Favorites and alerts stay saved in this browser.";
   }
 
   function bellIcon() {
@@ -914,8 +911,8 @@
   function eventTags(ev) {
     const labels = Object.fromEntries(t().filters.map((row) => [row[0], row[1]]));
     const short = {
-      main: lang === "en" ? "Main" : "Principais",
-      boss: lang === "en" ? "Boss" : "Chefe",
+      main: "Main",
+      boss: "Boss",
       meta: "Meta",
       core: "Core",
       hot: "HoT",
@@ -1066,13 +1063,17 @@
     const now = Date.now();
     pruneDone(now);
     watch(now);
+    if (!footAt || now - footAt >= 60000) {
+      $("foot").textContent = footText();
+      footAt = now;
+    }
     const text = t();
     $("clock").textContent = document.body.classList.contains("is-narrow")
       ? fmtClock(now)
       : fmtClock(now) + " · " + zone() + " · " + dayPart(now);
 
     const { groups, order } = collect(now);
-    const sig = lang + "|" + order.map((key) => key + ":" + groups[key].map((row) => row.ev.id).join(",")).join("|");
+    const sig = order.map((key) => key + ":" + groups[key].map((row) => row.ev.id).join(",")).join("|");
     const list = $("list");
     if (sig === lastSig) {
       const byId = new Map();
@@ -1264,6 +1265,12 @@
   });
 
   $("alarm").addEventListener("click", finishAlarm);
+  $("alarm").addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " " || event.key === "Escape") {
+      event.preventDefault();
+      finishAlarm();
+    }
+  });
 
   $("search").addEventListener("input", () => {
     query = $("search").value.trim().toLowerCase();
@@ -1339,9 +1346,9 @@
   paintChrome();
   renderList();
   const versionLine = $("version-line");
-  if (versionLine) versionLine.textContent = "Version " + (window.GW2_VERSION || "1.0.1") + " · Bresleywil.2384";
+  if (versionLine && window.GW2_VERSION) versionLine.textContent = "Version " + window.GW2_VERSION + " · Bresleywil.2384";
 
-  /* The account panel is 200 KB. Only someone who uses it pays for it:
+  /* The account panel is about 165 KB. Only someone who uses it pays for it:
      a saved key loads it at boot (the tool shelf needs it), anyone else
      gets it on the first click on Account. */
   let accountLoad = null;
@@ -1352,7 +1359,7 @@
     }
     accountLoad = new Promise((resolve) => {
       const script = document.createElement("script");
-      script.src = "account.js?v=38";
+      script.src = "account.js?v=39";
       script.async = true;
       script.onload = () => {
         $("account").dataset.ready = "1";

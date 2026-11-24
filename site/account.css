@@ -328,46 +328,6 @@ body.mode-account #foot {
   color: var(--muted);
 }
 
-.acct-trait {
-  display: flex;
-  gap: 0.35rem;
-  align-items: center;
-  margin-top: 0.25rem;
-  font-size: 0.82rem;
-}
-
-button.acct-trait {
-  width: 100%;
-  margin-top: 0.25rem;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-size: 0.82rem;
-  text-align: left;
-  cursor: pointer;
-}
-
-button.acct-trait:hover {
-  color: var(--gold);
-}
-
-.acct-trait img,
-.acct-skill img {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-}
-
-.acct-skill {
-  display: flex;
-  gap: 0.35rem;
-  align-items: center;
-  font-size: 0.82rem;
-  margin: 0.15rem 0;
-}
-
 .acct-warn {
   color: var(--amber);
   font-size: 0.84rem;
@@ -596,25 +556,6 @@ button.detail-close {
   flex: 0 0 auto;
 }
 
-.skill-board {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin-top: 0.75rem;
-  overflow-x: auto;
-}
-
-.skill-line {
-  display: grid;
-  gap: 0.4rem;
-  width: max-content;
-}
-
-.skill-gap {
-  width: 48px;
-  height: 48px;
-}
-
 .upgrade-block {
   display: flex;
   gap: 0.6rem;
@@ -640,78 +581,6 @@ button.detail-close {
   flex: 0 0 auto;
 }
 
-.skill-icons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-button.skill-ico,
-span.skill-ico,
-.skill-ico.empty {
-  width: 48px;
-  height: 48px;
-  box-sizing: border-box;
-  border: 1px solid var(--line);
-  border-radius: 0.5rem;
-  background: #10141c;
-}
-
-button.skill-ico,
-span.skill-ico {
-  display: grid;
-  place-items: center;
-  padding: 3px;
-}
-
-button.skill-ico {
-  cursor: pointer;
-}
-
-button.skill-ico:hover {
-  border-color: var(--gold);
-}
-
-button.skill-ico.pet-ico {
-  padding: 0;
-  overflow: hidden;
-}
-
-button.skill-ico.pet-ico .skill-img {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  transform: scale(1.85);
-}
-
-.pet-frame {
-  width: 72px;
-  height: 72px;
-  overflow: hidden;
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  background: #0d1118;
-  border: 1px solid var(--line);
-  border-radius: 0.75rem;
-}
-
-.pet-frame .detail-icon {
-  width: 72px;
-  height: 72px;
-  border: 0;
-  border-radius: 0;
-  object-fit: cover;
-  transform: scale(1.85);
-}
-
-.skill-img {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  background: transparent;
-}
-
 .acct-hero h2 {
   margin: 0;
   font-size: 1.45rem;
@@ -720,8 +589,6 @@ button.skill-ico.pet-ico .skill-img {
 .acct-dlcs,
 .acct-facts,
 .fact-row,
-.skill-row,
-.build-cols,
 .track-row {
   display: flex;
   flex-wrap: wrap;
@@ -746,18 +613,6 @@ button.skill-ico.pet-ico .skill-img {
   display: block;
   color: var(--muted);
   font-size: 0.74rem;
-}
-
-.build-cols {
-  align-items: flex-start;
-}
-
-.build-col {
-  flex: 1 1 180px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 0.75rem;
-  padding: 0.5rem 0.6rem;
 }
 
 .doll {

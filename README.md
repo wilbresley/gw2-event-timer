@@ -2,7 +2,7 @@
 
 [![Português](https://img.shields.io/badge/Leia%20em-Portugu%C3%AAs-2ea44f?style=for-the-badge)](README.pt-BR.md)
 
-Version 1.0.1.
+Version 1.1.0.
 
 A browser page for Guild Wars 2 world bosses and meta events, with an optional account panel. The clock is the clock of the device looking at the page. There is no database, no site login, and no build step.
 
@@ -263,11 +263,11 @@ The window width changes how many columns the list uses: 1 up to 1199 px, 2 from
 
 Requests go from that person's browser straight to `https://api.guildwars2.com`. This container does not proxy those calls and does not keep the key. Icons from `render.guildwars2.com` do not count toward the API request budget.
 
-The menus, in this order, are Summary, Legendary, Ascended, Inventory, Characters, Tools, Bosses, Wallet, Unlocks, Action House, PvP, WvW, Progress, and Guilds. The panel shows what the API returns and redraws the open menu when a read finishes. A page reload is not required.
+The menus, in this order, are Summary, Legendary, Ascended, Inventory, Characters, Tools, Bosses, Wallet, Unlocks, Auction House, PvP, WvW, Progress, and Guilds. The panel shows what the API returns and redraws the open menu when a read finishes. A page reload is not required.
 
 To the left of **Forget Account** there are four buttons:
 
-- **Clear this menu's filters** clears the filters of the open menu. On Characters, it returns to the first character in the list, build 1, and equipment 1.
+- **Clear this menu's filters** clears the filters of the open menu. On Characters, it returns to the first character in the list and equipment 1.
 - **Clear filters on all menus** clears the filters of every menu, with the same Characters reset.
 - **Update this menu from the API** reads the open menu again.
 - **Update all menus from the API** reads the account again. That button waits 60 seconds between uses.
@@ -278,7 +278,7 @@ To the left of **Forget Account** there are four buttons:
 
 **Inventory** separates Bank, Shared Slot, Materials, and each character. Each bank tab is a grid of 10 columns by 3 rows. Grouped bank mode is also 10 columns. Shared inventory is always 10 columns and shows the number of slots the API returns, without padding past that. Materials follow the official API categories, in the official order, and list what is stored. An empty category stays in the list. The API does not report the unlocked material storage size, so the page does not invent that number. The column stepper changes character bags only. Each character name in that filter uses the profession color.
 
-**Characters** shows weapon skills 1 to 5 of the equipped weapons, plus heal, utilities, and elite. There are no F1 to F5 skills. On an elementalist, each element shows that element's skill on the equipped weapon. On a ranger, only the equipped pets appear. On a revenant, each equipped legend has its own heal and utility bar, drawn beside a weapon line only so the rows line up. The weapon does not choose those skills.
+**Characters** shows each character's facts, elite specialization, and equipment templates, including the items equipped in each template. Build templates and the skill bar were removed on purpose; open the game to see skills. The elite specialization is read from the account and needs the `builds` permission on the key.
 
 **Tools** separates infinite and limited gathering tools. One infinite tool of each type can be tracked, and **Clear tracked tools** removes that tracking from the header. On a narrow window those three tools sit in one row inside the menu. Between the infinite tools and the limited tools, only gathering-tool glyphs appear, loose or socketed in a tool. Runes, sigils, and other upgrades are not listed. Clicking a glyph opens where it is.
 
@@ -288,7 +288,7 @@ To the left of **Forget Account** there are four buttons:
 
 The page does not calculate combat attributes. If the API does not send a number, the panel does not invent one.
 
-The browser keeps a local IndexedDB cache so catalogs that change rarely, such as items, skins, and recipes, are not downloaded again. The first open of a large account takes longer. Later opens use what was already saved in that browser.
+The browser keeps a local IndexedDB cache so catalogs that change rarely, such as items, skins, and recipes, are not downloaded again. The first open of a large account takes longer. Later opens use what was already saved in that browser. When ArenaNet's game build changes, the page discards the cached catalog and rebuilds it on demand.
 
 There is a ceiling of 600 requests per minute in the browser itself, to stay inside ArenaNet's public limit. The account updates on its own every 10 minutes, tools every 5 minutes, and account bosses every hour. If ArenaNet's API does not answer, the panel closes and the event timer keeps running.
 
@@ -307,7 +307,7 @@ Nothing from the timer is sent to a server beyond the page itself. Favorites, al
 | `docker-compose.yml` | Starts Nginx and publishes port 8094 |
 | `nginx.conf` | Serves the page, compresses the text files, and sends the security headers |
 | `start.ps1`, `start.sh` | Shortcut for `docker compose up -d` |
-| `VERSION` | This version number: 1.0.1 |
+| `VERSION` | This version number: 1.1.0 |
 | `README.md` | This documentation |
 | `README.pt-BR.md` | The same documentation in Portuguese |
 | `AGENTS.md` | Notes for whoever changes the code later, including an AI assistant |
@@ -327,7 +327,7 @@ The image used is `nginx:1.30-alpine`. It is not built in this repository. Compo
 
 `nginx.conf` compresses text files, sends `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and a `Content-Security-Policy`, and answers a missing file with a real 404 instead of the page. The policy allows the page's own files, the API at `api.guildwars2.com`, item icons at `render.guildwars2.com`, and the worker that keeps the clock ticking in a background tab.
 
-`site/account.js` is about 200 KB and only someone who opens Account downloads it. A browser that already has a key saved loads it at start, because the tools in the top bar come from it.
+`site/account.js` is about 165 KB and only someone who opens Account downloads it. A browser that already has a key saved loads it at start, because the tools in the top bar come from it.
 
 ## When something does not open
 
@@ -344,6 +344,6 @@ docker compose logs
 
 **The account does not load and an API warning appears.** ArenaNet may be in maintenance. The event timer does not depend on that API and keeps running. Try the panel again later.
 
-**A key was pasted and nothing changes.** The key needs the account permissions the panel reads, such as account, characters, inventories, and unlocks. A key without a permission comes back empty or with an error in that section. **Forget Account** clears the wrong key so another one can be pasted.
+**A key was pasted and nothing changes.** The key needs the account permissions the panel reads, such as account, characters, builds, inventories, and unlocks. A key without a permission comes back empty or with an error in that section. **Forget Account** clears the wrong key so another one can be pasted.
 
 **The files were updated and the browser shows the old version.** Reload the page. Nginx sends `Cache-Control: no-cache`. If it still looks old, force-reload the browser.
