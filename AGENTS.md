@@ -6,6 +6,10 @@ Nada de dado pessoal entra neste repositório: sem endereço de casa, sem IP pri
 
 Três coisas aparecem de propósito e são escolha do mantenedor, não descuido: o **domínio público** do projeto, o **nome da conta do jogo** com a chave Pix no rodapé, e a janela do Pix. O domínio serve para qualquer pessoa abrir a página sem compilar nada, e a conta é como o projeto recebe presente. Não acrescente nada além disso.
 
+## Antes de procurar código
+
+O índice do CodeGraph fica em `.codegraph/` (local, ignorado pelo git). **Antes de sair procurando com `grep`/`rg`, use o CodeGraph** (`codegraph_explore`) com o nome dos símbolos, do arquivo ou a pergunta: ele devolve o código atual, o caminho de chamadas e o impacto da mudança em uma chamada. Use `grep`/`glob` só para literais exatos (uma string, um `?v=`, uma chave de `localStorage`), arquivos que não são código (HTML, CSS, README, config) ou quando o índice não cobrir o arquivo/linguagem. Se o índice estiver ausente ou velho, rode `codegraph init` de novo; no Windows, se o PowerShell bloquear o `codegraph.ps1`, use `codegraph.cmd`.
+
 ## Onde a página roda
 
 A mesma pasta `site` é servida de dois lugares, e os dois precisam continuar funcionando:
